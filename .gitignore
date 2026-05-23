@@ -1,0 +1,31 @@
+# Ren'Py compiled files
+*.rpyc
+*.rpymc
+
+# Save files
+saves/
+game/saves/
+
+# Logs
+log.txt
+errors.txt
+
+# Sensitive
+*.keystore
+
+# Ren'Py generated
+game/cache/
+game/renpy/
+renpy/
+*.pyc
+__pycache__/
+
+# Android build artifacts
+*.apk
+*.aab
+build_demo_out/
+build_output/
+
+# OS files
+.DS_Store
+Thumbs.db
