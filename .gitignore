@@ -29,3 +29,12 @@ build_output/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated AI assets
+generate_*.py
+*.zip
+*.apk
+
+# Old backup files
+*.old
+*.bak

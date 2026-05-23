@@ -1,25 +1,41 @@
-﻿# ============================================================================
-# 可堡灵之校 - 主游戏脚本 (一周目完整版)
-# ============================================================================
+# ============================================================
+# 可堡灵之校 v2 - 重构版脚本 (w1d1 ~ w1d2)
+# ============================================================
 
 # ---- 全局变量 ----
-default day = 1
-default week = 1
-default stamina = 100
+default w = 1
+default d = 1
+default stamina = 50
+default stamina_max = 50
 default keli_coins = 10
-default kbf_trust = 0
-default lx_trust = 0
-default has_note = False
-default has_food = False
-default found_hideout = False
+default current_char = "lv"  # lv=吕文强, zwh=张闻晦, xhh=徐鸿昊, yjc=严笳谌, wjy=吴机岩, ld=劳达
+default char_alive = {
+    "lv": True,
+    "zwh": True,
+    "xhh": True,
+    "yjc": True,
+    "wjy": True,
+    "ld": True
+}
+default difficulty = "normal"  # easy / normal / nightmare
+default mask_progress = 0      # 面具吞噬进度 0~100
+default has_phone = False
+default has_noticed = False
 
-# ---- 角色 ----
-define kbl = Character("可堡灵", who_color="#CC3333")
-define lx = Character("林晓", who_color="#3388CC")
-define me = DynamicCharacter("player_name")
-define unk = Character("???", who_color="#AAAAAA")
+# ---- 角色定义 ----
+define lv = Character("吕文强", who_color="#66BB6A")
+define zwh = Character("张闻晦", who_color="#42A5F5")
+define xhh = Character("徐鸿昊", who_color="#FFA726")
+define yjc = Character("严笳谌", who_color="#AB47BC")
+define wjy = Character("吴机岩", who_color="#EF5350")
+define ld = Character("劳达", who_color="#8D6E63")
+define head = Character("班主任", who_color="#78909C")
+define unknown = Character("???", who_color="#AAAAAA")
+define mask = Character("面具", who_color="#000000")
+define kelibao = Character("可丽堡", who_color="#CC3333")
+define blackman = Character("黑衣人", who_color="#37474F")
 
-# ---- 场景 ----
+# ---- 场景（复用旧资源 + 新增占位）----
 image classroom_day = "jiaoshi_1.jpg"
 image classroom_after = "jiaoshi_2.jpg"
 image classroom_eve = "jiaoshi_3.jpg"
@@ -42,17 +58,47 @@ image canteen_day = "canteen_day.png"
 image canteen_dusk = "canteen_dusk.png"
 image canteen_light = "canteen_light.png"
 
-# ---- 角色立绘 ----
-image kbl normal = "gbl/gbl_normal.png"
-image kbl angry = "gbl/gbl_angry.png"
-image kbl happy = "gbl/gbl_happy.png"
-image kbl fright = "gbl/gbl_fright.png"
-image kbl he = "gbl/gbl_he.png"
+# ---- 新增场景 ----
+image playground = "playground.png"
+image office_hall = "office_hall.png"
+image office_principal = "office_principal.png"
+image school_gate_closeup = "school_gate_closeup.png"
+image broadcast_room = "broadcast_room.png"
+image security_room = "security_room.png"
 
-image lx normal = "lx/lx_normal.png"
-image lx angry = "lx/lx_angry.png"
-image lx happy = "lx/lx_happy.png"
-image lx fright = "lx/lx_fright.png"
+# ---- 立绘（吕文强使用原林晓立绘）----
+image lv normal = "lx/lx_normal.png"
+image lv happy = "lx/lx_happy.png"
+image lv angry = "lx/lx_angry.png"
+image lv fright = "lx/lx_fright.png"
+
+# ---- 新增立绘 ----
+image zwh normal = "zwh_normal.png"
+image zwh happy = "zwh_happy.png"
+image zwh angry = "zwh_angry.png"
+image zwh fright = "zwh_fright.png"
+image zwh sneaky = "zwh_sneaky.png"
+image xhh normal = "xhh_normal.png"
+image xhh happy = "xhh_happy.png"
+image xhh angry = "xhh_angry.png"
+image xhh fright = "xhh_fright.png"
+image yjc normal = "yjc_normal.png"
+image yjc happy = "yjc_happy.png"
+image yjc angry = "yjc_angry.png"
+image yjc fright = "yjc_fright.png"
+image wjy normal = "wjy_normal.png"
+image wjy happy = "wjy_happy.png"
+image wjy angry = "wjy_angry.png"
+image wjy fright = "wjy_fright.png"
+image ld normal = "ld_normal.png"
+image ld happy = "ld_happy.png"
+image ld angry = "ld_angry.png"
+image ld fright = "ld_fright.png"
+image mask_principal = "mask_principal.png"
+image kelibao_normal = "gbl/gbl_normal.png"
+image kelibao_happy = "gbl/gbl_happy.png"
+image kelibao_angry = "gbl/gbl_angry.png"
+image blackman_default = "blackman.png"
 
 # ---- 工具函数 ----
 init python:
@@ -60,14 +106,16 @@ init python:
         days = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
         return days[d - 1] if 1 <= d <= 7 else "无效"
 
-    def day_end_check():
+    def stamina_use(cost):
         global stamina
-        stamina = min(100, stamina + 15)
+        if current_char == "xhh":
+            cost = max(1, cost - 2)
+        stamina -= cost
         if stamina <= 0:
             renpy.jump("game_over_exhausted")
 
-# ---- HUD（放大字号）----
-screen game_hud():
+# ---- HUD ----
+screen game_hud_v2():
     zorder 100
     frame:
         xalign 1.0
@@ -79,714 +127,575 @@ screen game_hud():
         ypadding 12
         vbox:
             spacing 4
-            text "[get_dayName(day)]" color "#87CEEB" size 22 outlines [(2, "#00000088", 0, 0)]
-            text "精力: [stamina]" color "#66DD66" size 22 outlines [(2, "#00000088", 0, 0)]
+            text "第 [d] 天" color "#87CEEB" size 22 outlines [(2, "#00000088", 0, 0)]
+            text "精力: [stamina]/[stamina_max]" color "#66DD66" size 22 outlines [(2, "#00000088", 0, 0)]
             if keli_coins > 0:
                 text "可丽币: [keli_coins]" color "#FFD700" size 22 outlines [(2, "#00000088", 0, 0)]
 
 # ============================================================
 # 游戏开始
 # ============================================================
-label start:
+label start_v2:
+    scene black
+    with dissolve
+
     "本游戏纯属虚构"
     "如有雷同，纯属巧合"
 
-    $ player_name = renpy.input("请输入你的名字（最多12字符）：", length=12).strip() or "master"
-
-    scene black
-    with dissolve
-    "故事开始……"
-    jump day1_morning
-
-# ============================================================
-# 第一天 · 平凡的世界 → 时空重叠
-# ============================================================
-label day1_morning:
-    scene classroom_day
-    with fade
-    show screen game_hud
-    play music "suhuan1.mp3" loop fadein 1.0
-
-    "星期一的早晨。"
-    "空气里混着粉笔灰的味道。"
-    "你坐在教室里，正准备趴一会儿。"
-
-    show lx normal at right
-    with moveinright
-    lx "[player_name]，可堡灵又在后面闹了。"
-    lx "他说没写生物作业，要借我的抄。"
-
     menu:
-        "怎么回应？"
-        "别理他":
-            $ lx_trust += 1
-            lx "唉……你说得对。"
-        "我去看看":
-            $ kbf_trust += 1
-            "你站起身往后排走去。"
+        "选择难度："
+        "简单（允许存档读档）":
+            $ difficulty = "easy"
+        "困难（吞噬人格后有负面效果，允许存档读档）":
+            $ difficulty = "normal"
+        "噩梦（不能存档读档，吞噬人格后有负面效果）":
+            $ difficulty = "nightmare"
 
-    scene classroom_day
-    show kbl normal:
-        xalign 0.5 yalign 1.0
-    kbl "哦？[player_name]？咋了？"
-
-    menu:
-        "你说："
-        "「老实写作业」":
-            $ kbf_trust -= 1
-            show kbl angry
-            kbl "啧，装啥呢。"
-            $ stamina -= 5
-        "「没事，你继续」":
-            $ kbf_trust += 1
-            show kbl happy
-            kbl "嘿嘿，还是你懂我。"
-
-    play sound "classbell.mp3"
-    hide kbl
-    "上课铃响了。"
-
-    $ renpy.pause(2.0)
-
-    play sound "bang_table.mp3"
-    "突然一声拍桌响！"
-    show classroom_day with hpunch
-
-    unk "可堡灵！！！上课睡觉？！"
-    show kbl normal
-    kbl "老师我没睡……"
-    unk "站起来！"
-
-    hide kbl
-    "可堡灵慢慢站起来。"
-    "他的动作……不太对劲。"
-    "像换了一个人。"
-    $ stamina -= 3
-
-    scene canteen_day
-    with fade
-    "午饭时，林晓坐在你对面。"
-
-    show lx happy at left
-    lx "上午生物课那段你看到了吧？"
-
-    menu:
-        "挺正常的":
-            $ lx_trust += 1
-        "确实有点怪":
-            $ kbf_trust += 1
-
-    hide lx
-    "下午平平无奇。可堡灵逃课了。"
-
-    scene dorm_day
-    with fade
-    stop music fadeout 2.0
-    "放学回宿舍，身体像灌了铅一样沉。"
-    "你爬上床，意识模糊……"
-
-    scene black
-    with dissolve
-    play sound "kb_01.mp3"
-
-    show white:
-        alpha 0
-        linear 0.5 alpha 0.8
-        linear 1.5 alpha 0
-
-    $ renpy.pause(2.5)
-
-    play music "suhuan1.mp3" loop fadein 2.0
-
-    scene dorm_moon
-    with dissolve
-    "你醒来。凌晨3:44。"
-    "手机——无信号。"
-    "一切都不一样了。"
-
-    scene corridor_night
-    with fade
-    play sound "footstep_02.mp3"
-    "走廊空无一人，安静得可怕。"
-
-    scene building_night
-    with fade
-    play sound "kb_01.mp3"
-    "广播突然响起——"
-
-    kbl "各位同学，晚上好。"
-    kbl "欢迎来到新的学期。"
-    kbl "第一条：晚上十点后，禁止离开宿舍。"
-    kbl "第二条：禁止靠近学校大门。"
-    kbl "第三条：一切以可丽币结算。"
-    kbl "祝各位……活得愉快。"
-
-    play sound "kb_01.mp3"
-    "广播切断。你背后一阵发凉。"
-
-    scene gate_night
-    with fade
-    "校门被半透明的雾气封锁，伸手一碰——"
-    play sound "bang_table.mp3"
-    "刺痛！真的出不去……"
-
-    scene black
-    with fade
-    stop music fadeout 2.0
-
-    $ day = 2
-    $ day_end_check()
-
-    "第一天 · 结束"
-
-    jump day2_dorm
-
-# ============================================================
-# 第二天 · 宿舍探索
-# ============================================================
-label day2_dorm:
-    scene dorm_day
-    with fade
-    show screen game_hud
-    play music "suhuan1.mp3" loop
-
-    "第二天清晨。"
-    "你从宿舍床上醒来。"
-    "昨晚的一切……不是梦。"
-
-    "宿舍门缝下塞着一张纸条。"
-
-    $ renpy.pause(1.0)
-    "你捡起来一看——"
-
-    show white:
-        alpha 0
-        linear 0.3 alpha 0.5
-        linear 0.5 alpha 0
-
-    unk "\「宿舍楼三楼储物间是安全的。\」"
-    unk "\「别让可堡灵发现你知道太多。\」"
-    unk "\——某人"
-
-    $ has_note = True
-
-    "没有署名。字迹很潦草，像是匆忙写的。"
-    "三楼储物间……要去看看吗？"
-
-    menu:
-        "去三楼储物间":
-            $ found_hideout = True
-            "你推开储物间的门——里面堆满了旧桌椅和灰尘。"
-            "但在角落里，你发现了一个铁盒。"
-            $ keli_coins += 5
-            "里面装着5枚可丽币和一张旧学生证。"
-            $ has_note = True
-            "照片上的人你不认识，但名字有些眼熟……"
-
-        "先搜搜宿舍":
-            "你在宿舍翻了翻，找到半包压缩饼干。"
-            $ has_food = True
-            $ stamina += 5
-            "虽然不顶饱，但总比没有好。"
-
-    play sound "footstep_out_01.mp3"
-    "走廊里传来脚步声。"
-    "你屏住呼吸——脚步声渐远。"
-
-    scene corridor_day
-    with fade
-    "你小心翼翼地走出宿舍。"
-    "走廊的墙上贴着一张新的告示："
-
-    show white:
-        alpha 0
-        linear 0.3 alpha 0.5
-        linear 0.5 alpha 0
-
-    kbl "今日食堂开放时间：12:00-13:00"
-    kbl "凭可丽币购买食物"
-    kbl "——可堡灵学生会"
-
-    "连食堂都被控制了……"
-
-    scene canteen_day
-    with fade
-    "你来到食堂，发现菜单上的价格高得离谱。"
-    "一份米饭就要3可丽币。"
-    "你口袋里只有[keli_coins]枚。"
-
-    menu:
-        "买一份吗？"
-        "买（-3可丽币）" if keli_coins >= 3:
-            $ keli_coins -= 3
-            $ stamina += 20
-            "你买了一份饭。虽然味道一般，但总算填了肚子。"
-        "不买":
-            $ stamina -= 10
-            "你忍着饿离开了食堂。"
-
-    scene corridor_day
-    with fade
-    "下午你在教学楼里转了一圈。"
-    "大部分教室都锁着门。"
-    "偶尔能看到一两个模糊的人影一闪而过——"
-    "但他们看到你就跑开了。"
-
-    scene dorm_dusk
-    with fade
-    "傍晚回到宿舍，你瘫在床上。"
-    "这个学校的每一天……都在消耗你的精力。"
-
-    $ day = 3
-    $ day_end_check()
-
-    "第二天 · 结束"
-    jump day3_search
-
-# ============================================================
-# 第三天 · 校园探索
-# ============================================================
-label day3_search:
-    scene corridor_day
-    with fade
-    show screen game_hud
-
-    "第三天。"
-    "你决定更仔细地探索校园。"
-
-    if found_hideout:
-        "你再次去了三楼储物间。"
-        "里面似乎被人翻过——但铁盒还在原位。"
-        "你打开铁盒，发现里面多了一张纸条："
-        show white:
-            alpha 0
-            linear 0.3 alpha 0.5
-            linear 0.5 alpha 0
-        unk "\「第五天晚上，钟楼见。\」"
-        "钟楼……学校的旧钟楼早就废弃了。"
-        $ has_note = True
+    if difficulty == "nightmare":
+        "你选择了噩梦难度。"
+        "无法存档，无法读档。"
+        "每一个选择都关乎生死。"
+    elif difficulty == "normal":
+        "你选择了困难模式。"
+        "被吞噬的人格会带来负面效果。"
+        "谨慎选择你的每一步。"
     else:
-        "你找到了三楼储物间。"
-        "里面有个铁盒，装着一些旧物和一张纸条。"
-        unk "\「第五天晚上，钟楼见。\」"
-        $ found_hideout = True
-        $ has_note = True
+        "简单模式。尽情体验故事吧。"
 
-    scene canteen_light
-    with fade
-    "午餐时间，林晓居然出现在食堂。"
-
-    show lx normal at right
-    with moveinright
-    lx "[player_name]！你还活着！"
-    lx "我以为……大家都……"
-
-    menu:
-        "你还好吗？":
-            $ lx_trust += 1
-            lx "我躲在后山器材室两天了。"
-        "你知道怎么回事吗？":
-            lx "我知道的不比你多。"
-            lx "但我觉得……可堡灵已经不是人了。"
-
-    lx "我得走了。他们有巡逻队。"
-    lx "保重，[player_name]。"
-    hide lx
-    with moveoutright
-
-    "林晓匆匆离开。"
-
-    scene corridor_dusk
-    with fade
-    "你走在回宿舍的路上。"
-    "突然——"
-
-    play sound "footstep_02.mp3"
-    "急促的脚步声从拐角传来！"
-    show kbl he at center
-    with vpunch
-
-    kbl "哟，[player_name]。"
-    kbl "这两天过得怎么样？"
-
-    "可堡灵的眼睛在昏暗的走廊里发着微弱的红光。"
-
-    menu:
-        "「挺好的」":
-            $ kbf_trust += 1
-            kbl "是吗？那就好。"
-            kbl "我还怕你不习惯呢。"
-        "「你到底是什么东西」":
-            $ kbf_trust -= 2
-            show kbl angry
-            kbl "啧，说话注意点。"
-            kbl "这里我说了算。"
-            $ stamina -= 10
-
-    hide kbl
-    "可堡灵转身离开了。"
-    "你松了口气。"
-
-    scene dorm_night
-    with fade
-    $ day = 4
-    $ day_end_check()
-    "第三天 · 结束"
-    jump day4_night
-
-# ============================================================
-# 第四天 · 夜晚异响
-# ============================================================
-label day4_night:
-    scene dorm_dusk
-    with fade
-    show screen game_hud
-
-    "第四天。"
-    "你发现校园里的人越来越少了。"
-    "早上还能看到几个零散的身影，到下午就几乎没人了。"
-
-    scene corridor_dusk
-    with fade
-    "你在走廊里遇到一个低年级学生。"
-    "他低着头快步走着。"
-
-    menu:
-        "叫住他":
-            "他惊恐地看了你一眼，转身就跑。"
-            "你只来得及看到他胳膊上的淤青。"
-        "算了":
-            "你让他过去了。"
-
-    scene dorm_night
-    with fade
-    play sound "knock_door.mp3"
-    "深夜，你被敲门声惊醒。"
-
-    $ renpy.pause(2.0)
-    "又是三声。"
-
-    play sound "knock_door.mp3"
-    $ renpy.pause(2.0)
-
-    menu:
-        "开门":
-            "门外的走廊空无一人。"
-            "但地上放着一个纸包。"
-            "里面是一瓶水和一张纸条："
-            unk "\「坚持下去。\」"
-            $ stamina += 10
-        "不开门":
-            "你屏住呼吸，一动不动。"
-            "几分钟后，脚步声远去了。"
-
-    scene dorm_moon
-    with dissolve
-    "你再也睡不着了。"
-    "这个学校……到底发生了什么？"
-
-    $ day = 5
-    $ day_end_check()
-    "第四天 · 结束"
-    jump day5_clocktower
-
-# ============================================================
-# 第五天 · 钟楼之约
-# ============================================================
-label day5_clocktower:
-    scene building_day
-    with fade
-    show screen game_hud
-
-    "第五天。"
-    "你记得纸条上的约定——钟楼。"
-
-    scene corridor_day
-    with fade
-    "旧钟楼在教学楼的最西侧。"
-    "铁门虚掩着，像是被人打开不久。"
-
-    scene corridor_dusk
-    with fade
-    "你沿着旋转楼梯往上走。"
-    "每走一步，木阶梯就发出刺耳的吱呀声。"
-
-    scene canteen_dusk
-    with fade
-    "钟楼的顶层出乎意料地宽敞。"
-    "地上铺着一条旧毯子，旁边堆着几本书和一个水壶。"
-
-    "有人住在这里。"
-
-    show white:
-        alpha 0
-        linear 0.3 alpha 0.5
-        linear 0.5 alpha 0
-
-    lx "[player_name]？是你吗？！"
-    show lx happy at center
+    scene black
     with dissolve
 
-    "林晓从角落里探出头来。"
+    "故事开始……"
 
-    lx "那张纸条是我放的！"
-    lx "这里是我发现的秘密据点。"
-
-    menu:
-        "你怎么找到这里的？":
-            lx "我之前是学生会成员，有所有楼的钥匙。"
-            lx "但现在都没用了。可堡灵控制了所有通道。"
-        "你在这里安全吗？":
-            lx "暂时安全。这里有水和干粮。"
-            lx "但撑不了几天了。"
-
-    lx "我觉得……我们要逃出去。"
-    lx "校门口那层雾，一定有破解的办法。"
-
-    "林晓翻开一本旧笔记。"
-    show lx normal
-    lx "我以前在图书馆看过一本关于这个学校历史的书。"
-    lx "这个学校……一百年前就出过类似的事。"
-    lx "那本书里提到，要解除封锁，需要找到「堡灵之印」。"
-
-    "\「堡灵之印」？"
-    lx "我不知道那是什么。但肯定跟可堡灵有关。"
-
-    scene corridor_night
-    with fade
-    "离开钟楼时天色已暗。"
-    "你心里有了目标——找到「堡灵之印」。"
-
-    $ day = 6
-    $ day_end_check()
-    "第五天 · 结束"
-    jump day6_desperate
+    jump w1d1_morning
 
 # ============================================================
-# 第六天 · 绝境
+# w1d1 · 异常的前兆
 # ============================================================
-label day6_desperate:
-    scene corridor_day
-    with fade
-    show screen game_hud
+label w1d1_morning:
+    $ w = 1
+    $ d = 1
 
-    "第六天。"
-    "你开始在校园里寻找「堡灵之印」的线索。"
-    "图书馆锁着门。行政楼也锁着。"
-    "可堡灵的巡逻队明显增多了。"
+    scene dorm_day
+    with fade
+    show screen game_hud_v2
+
+    "清晨的阳光透过窗帘的缝隙照进宿舍。"
+    "吕文强睁开眼，看了一眼天花板。"
+
+    "又是普通的一天。"
+    "普通到让人觉得——"
+    "好像哪里不太对。"
+
+    scene classroom_day
+    with fade
+    "教室里，你翻开课本。"
+
+    show lv normal at center
+    with dissolve
+
+    "……嗯？"
+
+    "课本的某一页折了个角。"
+    "你确定自己从来没有折过书页的习惯。"
+
+    "你拿起水杯。"
+    "杯子的位置也不对——你习惯放在右上角，现在它在左边。"
+    $ has_noticed = True
+
+    "可能是室友动过吧。"
+    "你压下心里的那点异样，开始自习。"
 
     scene canteen_day
     with fade
-    "你在食堂买饭时，发现告示栏上贴着一张新通知："
+    "午饭时间，食堂里人声嘈杂。"
 
-    show white:
-        alpha 0
-        linear 0.3 alpha 0.5
-        linear 0.5 alpha 0
+    "你端着餐盘找了个角落坐下。"
+    "对面的同学在讨论什么——"
 
-    kbl "全校集会——第七天下午五点 · 操场"
-    kbl "无故缺席者——后果自负。"
+    "同学A："哎听说了吗？这次春游校长要选六个学生代表。""
+    "同学B："六个？这么多？以前最多两个。""
+    "同学A："不知道，反正跟我们没关系，那是好学生的事。""
 
-    "不好的预感。"
+    "你夹了一块肉放进嘴里。"
+    "六名学生代表……"
 
-    scene corridor_dusk
+    scene classroom_after
     with fade
-    play sound "footstep_02.mp3"
+    "下午一点。"
 
-    "回宿舍的路上，你被三个穿黑衣服的学生拦住了。"
+    head "同学们，安静一下。"
+    head "我要宣布一个好消息——"
+    head "学校决定在下周组织春游！"
 
-    unk "你就是[player_name]？"
-    unk "堡灵哥要见你。"
+    show lv happy
+    "教室里爆发出欢呼声。"
+    "你也跟着鼓起掌来。"
+    "春游……确实很久没有过了。"
 
-    menu:
-        "跟他们走":
-            $ stamina -= 10
-            "他们把你带到了旧教学楼的一间教室里。"
-            scene classroom_night
-            with fade
-            show kbl angry at center
-            kbl "[player_name]，你最近很不老实啊。"
-            kbl "到处打听不该打听的事。"
-            "他走到你面前，几乎贴着你的脸。"
-            kbl "明天的集会，你得来。"
-            kbl "不然……你知道后果。"
-            hide kbl
-            "他们放你走了。"
-            "但你心里清楚——明天不会是什么好事。"
+    
+    with dissolve
 
-        "逃跑":
-            "你转身就跑！"
-            $ stamina -= 15
-            "你拼了命地跑回宿舍，锁上门。"
-            "外面传来咒骂声和踢门声。"
-            "但他们最终离开了。"
-            "你暂时安全了……但可堡灵不会放过你的。"
+    "但你的脑海中还在回响着午饭时听到的那句话——"
+    "六名学生代表。"
+    "总觉得……不太对劲。"
+
+    scene dorm_dusk
+    with fade
+    "傍晚，宿舍。"
+    "室友们都在兴奋地讨论春游要去哪里。"
+    "你靠在床头，翻着那本被折过角的课本。"
+
+    "也许是你多心了。"
+    "也许一切都很正常。"
+
+    show lv normal at center
+    "你合上书，闭上眼。"
+    "明天……再说吧。"
 
     scene dorm_night
     with fade
+    "夜深了。"
+    "宿舍里只剩下均匀的呼吸声。"
 
-    $ day = 7
-    $ day_end_check()
-    "第六天 · 结束"
-    jump day7_finale
+    $ renpy.pause(2.0)
+
+    "你翻了个身。"
+    "窗外的月光很亮。"
+    "有什么东西在窗台上一闪而过。"
+
+    "……错觉吧。"
+
+    scene black
+    with fade
+
+    $ d = 2
+    $ stamina = min(stamina_max, stamina + 10)
+
+    "—— w1d1 结束 ——"
+
+    jump w1d2_morning
 
 # ============================================================
-# 第七天 · 一周目终章
+# w1d2 · 学生代表
 # ============================================================
-label day7_finale:
+label w1d2_morning:
     scene dorm_day
     with fade
-    show screen game_hud
+    show screen game_hud_v2
 
-    "第七天。"
-    "最后一天了。"
-    "集会下午五点开始。"
+    "第二天。"
+
+    "室友们起得格外早。"
+    "有人在哼歌，有人在翻行李箱找衣服。"
+    "春游的气氛让整个宿舍都活了过来。"
+
+    "但你心里那根弦始终绷着。"
+    "你也起了床，洗漱，去教室。"
+
+    scene classroom_day
+    with fade
+
+    "早自习的铃声刚响不久。"
+
+    head "吕文强，跟我出来一下。"
+
+    show lv normal
+    "你愣了一下。"
+    "班主任的表情看不出喜怒。"
+
+    "你跟着她走出教室。"
 
     scene corridor_day
     with fade
 
-    "你还有几个小时做准备。"
+    head "恭喜你，你被选为本次春游的学生代表之一。"
 
-    if found_hideout:
-        "你去钟楼找了林晓。"
-        show lx normal at right
-        lx "你来了。"
-        lx "我查到了「堡灵之印」是什么了。"
-        lx "那是可堡灵的力量核心。"
-        lx "只要毁了它，封锁就会解除。"
-        lx "那东西……就在他身上。"
-        "所以你需要在集会上接近他。"
+    show lv fright
+    "你张了张嘴。"
+
+    menu:
+        "你的反应："
+        "「为什么是我？」":
+            lv "……为什么是我？"
+            head "你的综合表现不错，老师们一致推荐的。"
+        "「代表要做什么？」":
+            lv "学生代表……具体要做什么？"
+            head "一些组织和协调工作。别担心，不复杂。"
+        "沉默":
+            "你点了点头，没有说话。"
+            "班主任似乎对你的平静有些意外。"
+
+    head "其他五位代表已经在等着了。"
+    head "你现在去校长办公室集合。"
+    head "校长要在大集合之前见你们。"
+
+    show lv normal
+    "校长办公室……"
+    "你从没去过那个地方。"
+
+    "——【分支选择】——"
+
+    scene corridor_day
+    with fade
+
+    "你走在通往行政楼的走廊上。"
+    "脚步在空旷的走廊里回响。"
+
+    scene office_hall
+    with fade
+    "行政楼比教学楼安静得多。"
+    "墙上挂着的名人名言在日光灯下显得有些苍白。"
+
+    "校长办公室的门虚掩着。"
+
+    "你推门进去。"
+
+    scene office_principal
+    with fade
+
+    "办公室里已经站了五个人。"
+    "看到你进来，他们各自投来目光。"
+
+    show zwh normal at left
+    zwh "吕文强？你就是第六个？"
+    "说话的是一个瘦高的男生——后来你才知道他叫张闻晦。"
+
+    show yjc normal at right
+    yjc "人都齐了。校长呢？"
+    "严笳谌推了推眼镜，环顾四周。"
+
+    show xhh normal:
+        xalign 0.3 yalign 1.0
+    xhh "是不是在里间？我去看看？"
+    "徐鸿昊已经迈开步子。"
+
+    show wjy normal:
+        xalign 0.7 yalign 1.0
+    wjy "别乱动。万一校长在开会——"
+    "吴机岩靠在墙边，双手插兜。"
+
+    show ld normal:
+        xalign 0.5 yalign 1.0
+    ld "……"
+    "角落里一个高个子男生一言不发。后来你才知道他叫劳达，大家都叫他老大。"
+
+    "五分钟过去了。"
+    "十分钟过去了。"
+
+    yjc "校长还没来。"
+
+    zwh "会不会……忘了？"
+
+    "一种不安的气氛在房间里蔓延。"
+    "你心里的那根弦，又绷紧了一分。"
+
+    menu:
+        "你决定："
+        "出去看看情况":
+            jump w1d2_look_outside
+        "检查校长办公桌":
+            jump w1d2_check_desk
+        "让大家继续等":
+            jump w1d2_keep_waiting
+
+# ============================================================
+# w1d2 · 检查办公桌
+# ============================================================
+label w1d2_check_desk:
+    show lv normal
+    "你走到校长办公桌前。"
+    "桌上摊着一本打开的文件夹。"
+    "里面是……一份名单。"
+    "六个名字被红笔圈了起来——"
+    "包括你的。"
+    ""
+    "你来不及细看，走廊传来脚步声。"
+    "你连忙退回原位。"
+    jump w1d2_look_outside
+
+# ============================================================
+# w1d2 · 继续等
+# ============================================================
+label w1d2_keep_waiting:
+    show lv normal
+    "你又等了五分钟。"
+    "校长依然没有出现。"
+    ""
+    zwh "一直等下去也不是办法……"
+    "你决定出去看看。"
+    jump w1d2_look_outside
+
+# ============================================================
+# w1d2 · 出去看看
+# ============================================================
+label w1d2_look_outside:
+    show lv normal
+    "你推开办公室的门，走到走廊上。"
+
+    scene corridor_day
+    with fade
+
+    "行政楼依然安静。"
+    "你走到窗边——"
+
+    scene playground
+    with fade
+
+    "操场上空空荡荡。"
+
+    "没有学生。"
+    "没有老师。"
+    "一个人都没有。"
+
+    "你愣住了。"
+
+    "集合时间早就过了。"
+    "全校上千人——怎么可能一个人都没有？"
+
+    show lv fright
+    "你的心跳开始加速。"
+
+    menu:
+        "你决定："
+        "尝试离开校园":
+            jump w1d2_try_leave
+        "去教室办公室拿手机":
+            jump w1d2_get_phone
+        "回办公室告诉大家":
+            jump w1d2_back_to_office
+
+# ============================================================
+# w1d2 · 尝试离开校园
+# ============================================================
+label w1d2_try_leave:
+    scene corridor_day
+    with fade
+    "你快步走向校门。"
 
     scene gate_day
     with fade
-    "下午五点，操场。"
-    "全校不到三十个人稀稀拉拉地站着。"
-    "讲台上——可堡灵穿着笔挺的黑色制服。"
+    "校门近在咫尺。"
+    "你几乎能看到外面的马路——"
 
-    show kbl he at center
-    kbl "各位，这一周过得还愉快吧？"
-    kbl "从今天起，这里将实行新的制度。"
-    kbl "愿意效忠我的，可以留下。"
-    kbl "不愿意的——"
-    "他笑了笑。"
-    kbl "校门在那，你们可以走。"
+    show blackman_default at center
+    with vpunch
 
-    "人群骚动起来。几个人试探性地走向校门——"
-    "他们穿过了雾气！"
+    blackman "站住。"
 
-    "真的可以走了？！"
+    "两个穿黑色西装的男人拦住了你。"
+    "他们的脸上没有任何表情。"
 
-    "但可堡灵接下来的话让你僵住了。"
-    kbl "不过嘛……离开的人，会忘记在这里的一切。"
-    kbl "包括你们在外面的人生。"
-    kbl "出去就是一个全新的人。"
-    kbl "什么都不记得。"
+    blackman "学生不允许离开校园。"
 
-    "人群沉默了。"
+    show lv angry
+    "你盯着他们。"
 
     menu:
-        "你的选择："
-        "走向校门（离开，失去一切记忆）":
-            jump ending_leave
-        "冲向可堡灵（夺走堡灵之印）":
-            jump ending_fight
-        "先观察情况":
-            jump ending_watch
+        "强硬离开":
+            $ stamina_use(15)
+            "你试图冲过去。"
+            "黑衣人动作极快——一只手按上你的肩膀。"
+            "你挣扎了一下，但力量悬殊太大。"
+            "后脑勺传来一阵钝痛。"
+            scene black
+            with dissolve
+            "视野模糊。"
+            "你倒了下去。"
+            "失去意识前，你听到——"
+            mask "第一份……收下了。"
+            $ char_alive["lv"] = False
+            jump w2_character_select
+        "后退":
+            show lv normal
+            "你后退了一步。"
+            "黑衣人没有追上来。"
+            "但校门……出不去了。"
+            jump w1d2_back_to_office
 
 # ============================================================
-# 结局 · 离开
+# w1d2 · 去教室办公室
 # ============================================================
-label ending_leave:
-    scene gate_morning
+label w1d2_get_phone:
+    scene corridor_day
     with fade
-    "你走向校门。"
-    "雾气在你面前分开。"
+
+    "你转身，快步走向教学楼。"
+    "教室办公室的门锁着。"
+
+    "你试着拧了拧把手——锁死的。"
+
+    menu:
+        "撞开门？":
+            $ stamina_use(10)
+            "你用肩膀撞了两下——门开了。"
+            show lv normal
+            lv "(……这算不算犯罪？)"
+            "没有时间犹豫了。"
+            "你找到讲台上的手机——"
+            "屏幕亮起。"
+            "无信号。"
+            "一格都没有。"
+            "手机在这里只是块砖头。"
+        "算了，回去":
+            jump w1d2_back_to_office
+
+    scene classroom_day
+    with fade
+
+    show lv fright
+    "你握着手机站在空荡荡的教室里。"
+    "没有信号。"
+    "校门出不去。"
+    "校长消失了。"
+
+    "你突然意识到一个可怕的事实——"
+    "你被困住了。"
+
+    jump w1d2_broadcast
+
+# ============================================================
+# w1d2 · 回办公室
+# ============================================================
+label w1d2_back_to_office:
+    scene office_principal
+    with fade
+
+    "你推门回到校长办公室。"
+    "五个人都看着你。"
+
+    menu:
+        "你告诉他们："
+        "「操场上一个人都没有」":
+            zwh "什么意思？"
+            lv "操场上……没人。全校都没人。"
+            "房间里陷入沉默。"
+            $ has_noticed = True
+        "「校门被封了」":
+            xhh "封了？什么叫封了？"
+            lv "有穿黑衣服的人拦着，不让出去。"
+            ld "……果然。"
+            "劳达开口了。这是他说的第一句话。"
+            $ has_noticed = True
+
+    "就在这时——"
+
+    play sound "classbell.mp3"
+
+    "广播突然响了。"
 
     scene black
     with fade
 
-    "你走出了学校。"
-    "身后的铁门缓缓关上。"
+    jump w1d2_broadcast
 
-    $ renpy.pause(2.0)
+# ============================================================
+# w1d2 · 广播
+# ============================================================
+label w1d2_broadcast:
+    scene corridor_day
+    with fade
 
-    unk "……"
-    unk "你站在一条陌生的街道上。"
-    unk "你不记得自己从哪里来。"
-    unk "也不记得自己是谁。"
+    mask "各位同学，上午好。"
 
-    $ renpy.pause(3.0)
+    "广播里的声音……不是校长。"
 
-    "——一周目 · 结局：遗忘——"
+    mask "原定于下周的春游活动，暂时取消。"
+    mask "请各位同学回到教室，正常上课。"
+    mask "重复——春游取消，正常上课。"
+
+    "广播切断。"
+
+    scene classroom_day
+    with fade
+
+    "不到十分钟。"
+    "学生们陆陆续续回到了教室。"
+    "一切都恢复了正常——"
+    "不。"
+
+    show lv fright
+    "你看着周围的同学。"
+    "他们安静地坐下。"
+    "安静地翻开课本。"
+    "安静地开始自习。"
+
+    "没有人说话。"
+    "没有人讨论春游取消的事。"
+    "没有人问为什么。"
+
+    "他们只是……安静地学习。"
+
+    "太安静了。"
+
+    "你感到一股寒意从脚底升起。"
+
+    scene classroom_day
+    with fade
+
+    "老师走进来。开始讲课。"
+    "一切如常。"
+    "如常得让人毛骨悚然。"
+
+    "你坐在座位上，握着笔。"
+    "笔尖悬在纸上，迟迟没有落下。"
+
+    show lv normal
+    "你的同桌在认真做笔记。"
+    "他的字迹工整。"
+    "但你看了一眼他的眼睛——"
+
+    "空的。"
+
+    scene black
+    with fade
+
+    $ d = 3
+    $ stamina = min(stamina_max, stamina + 10)
+
+    "—— w1d2 结束 ——"
+
+    "w1d3 待续……"
+
     return
 
 # ============================================================
-# 结局 · 抗争
+# w2 · 角色选择（主角阵亡后）
 # ============================================================
-label ending_fight:
-    play sound "bang_table.mp3"
-    scene gate_day with hpunch
+label w2_character_select:
+    scene black
+    with fade
 
-    "你冲向讲台！"
-    "可堡灵措手不及——"
+    "吕文强……失去了意识。"
+    "但他的故事还没有结束。"
+    "或者说——"
+    "这里每个人的故事，才刚刚开始。"
 
-    show kbl angry:
-        xalign 0.5 yalign 1.0
-    kbl "你疯了？！"
-    "你抓住了他胸口的吊坠——那就是「堡灵之印」。"
-    "用力一扯——"
+    $ current_char_choices = []
+    $ c_list = [("zwh", "张闻晦"), ("xhh", "徐鸿昊"), ("yjc", "严笳谌"), ("wjy", "吴机岩"), ("ld", "劳达")]
 
-    show white:
-        alpha 0
-        linear 0.2 alpha 1.0
-        linear 1.0 alpha 0
+    menu:
+        "选择下一位角色："
+        "张闻晦（可进入小空间）":
+            $ current_char = "zwh"
+        "徐鸿昊（行动精力-2）":
+            $ current_char = "xhh"
+        "严笳谌（能看懂特殊文字）":
+            $ current_char = "yjc"
+        "吴机岩（可关闭监控/恢复供电）":
+            $ current_char = "wjy"
+        "劳达（被发现的概率-30%%）":
+            $ current_char = "ld"
 
-    play sound "kb_01.mp3"
+    "你将成为——[current_char]。"
+    "故事从另一个视角继续……"
 
-    "一道刺目的白光炸开。"
+    jump w2_start
 
+label w2_start:
     scene black
     with dissolve
-
-    "当你再次睁开眼睛时——"
-    "你躺在宿舍床上。"
-    "手机有信号了。"
-    "阳光照进窗户。"
-
-    "学校广播里传来日常的通知。"
-    "一切都恢复了正常……"
-
-    $ renpy.pause(2.0)
-
-    "但你知道。"
-    "有什么东西不一样了。"
-
-    $ renpy.pause(2.0)
-
-    "——一周目 · 结局：苏醒——"
-    return
-
-# ============================================================
-# 结局 · 观察
-# ============================================================
-label ending_watch:
-    "你站在人群中，一动不动。"
-    "有人离开了，有人留下了。"
-    "可堡灵的目光扫过你们。"
-    kbl "很好。留下的，你们做出了正确的选择。"
-    kbl "明天开始，你们会明白的。"
-
-    scene black
-    with fade
-
-    "你留在了学校。"
-    "不是因为害怕。"
-    "而是因为你还没有放弃。"
-
-    $ renpy.pause(3.0)
-
-    "——一周目 · 结局：潜伏——"
-    "\（二周目待续\）"
+    "—— w2 待续 ——"
     return
 
 # ============================================================
@@ -795,8 +704,12 @@ label ending_watch:
 label game_over_exhausted:
     scene gameover
     with fade
-    play music "suhuan1.mp3"
-    "你的精力已经耗尽……"
+    "你的精力耗尽了……"
     $ renpy.pause(2.0)
-    "—— GAME OVER ——"
     return
+
+# ============================================================
+# 启动入口 - 跳转到v2版
+# ============================================================
+label start:
+    jump start_v2
