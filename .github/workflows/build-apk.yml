@@ -9,28 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
     - name: Setup JDK 17
       uses: actions/setup-java@v4
       with: { java-version: '17', distribution: 'temurin' }
-
     - name: Setup Python 3.9
       uses: actions/setup-python@v5
       with: { python-version: '3.9' }
-
     - name: Install deps
-      run: |
-        sudo apt-get update -q
-        sudo apt-get install -y xvfb
-
+      run: sudo apt-get install -y xvfb
     - name: Cache Ren'Py SDK
       id: cache-renpy
       uses: actions/cache@v4
-      with:
-        path: renpy-sdk
-        key: renpy-8.3.7-full
+      with: { path: renpy-sdk, key: renpy-8.3.7-full }
 
-    - name: Download Ren'Py SDK & RAPT
+    - name: Download SDK & RAPT
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
         BASE=https://github.com/renpy/renpy/releases/download/8.3.7.25031702
@@ -38,25 +30,31 @@ jobs:
         wget -q $BASE/renpy-8.3.7-rapt.zip
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
-        mkdir -p renpy-sdk/rapt
-        cd renpy-sdk/rapt
-        unzip -q ../../renpy-8.3.7-rapt.zip
+        cd renpy-sdk
+        unzip -q ../renpy-8.3.7-rapt.zip
+        # RAPT zip 解压后可能是 rapt/ 或直接在根目录
+        echo "=== after rapt unzip ==="
+        ls -la
+        find . -name "gradlew" -type f 2>/dev/null
 
     - name: Compile game
       run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
-
     - name: Prepare assets
       run: python3 .github/workflows/prepare_rapt.py
-
     - name: Build APK
       run: |
-        cd renpy-sdk/rapt
+        cd renpy-sdk
+        GRADLEW=$(find . -name "gradlew" -type f 2>/dev/null | head -1)
+        echo "Found gradlew: $GRADLEW"
+        PROJECT_DIR=$(dirname "$GRADLEW")
+        echo "Project: $PROJECT_DIR"
+        chmod +x "$GRADLEW"
+        cd "$PROJECT_DIR"
         ls -la
-        ./project/gradlew -p project assembleRelease --no-daemon
-
+        ./gradlew assembleRelease --no-daemon
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: goblin-release
-        path: renpy-sdk/rapt/project/app/build/outputs/apk/release/*.apk
+        path: renpy-sdk/**/app/build/outputs/apk/release/*.apk
         if-no-files-found: error
