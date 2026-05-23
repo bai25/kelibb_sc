@@ -35,15 +35,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: renpy-sdk
-        key: ${{ runner.os }}-renpy-8.3.2
+        key: ${{ runner.os }}-renpy-8.3.7
 
     - name: Download Ren'Py SDK
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
-        wget -q https://www.renpy.org/dl/8.3.2/renpy-8.3.2-sdk.7z
-        7z x renpy-8.3.2-sdk.7z -orenpy-sdk
-        mv renpy-sdk/renpy-8.3.2-sdk/* renpy-sdk/
-        rm -rf renpy-sdk/renpy-8.3.2-sdk
+        wget -q https://github.com/renpy/renpy/releases/download/8.3.7.25031702/renpy-8.3.7-sdk.tar.bz2
+        tar -xjf renpy-8.3.7-sdk.tar.bz2
+        mv renpy-8.3.7-sdk renpy-sdk
 
     - name: Compile game scripts
       run: |
