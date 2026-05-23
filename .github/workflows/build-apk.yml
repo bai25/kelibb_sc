@@ -53,12 +53,15 @@ jobs:
         python3 .github/workflows/prepare_rapt.py
 
     - name: Build APK with Gradle
-      working-directory: ./renpy-sdk/rapt/project
       env:
         ANDROID_HOME: ${{ github.workspace }}/renpy-sdk/rapt/Sdk
         JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
       run: |
-        chmod +x gradlew
+        cd renpy-sdk/rapt
+        chmod +x project/gradlew
+        cd project
+        ls -la
+        pwd
         ./gradlew assembleRelease --no-daemon
 
     - name: Upload APK
