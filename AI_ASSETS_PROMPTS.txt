@@ -1,0 +1,210 @@
+============================================================
+ 《可堡灵之校》v2 — AI 绘图素材需求清单
+ 适用于：Stable Diffusion / 通义万相 / 文心一格 / SeaArt
+============================================================
+
+【使用说明】
+- 分辨率为 1920×1080（场景）/ 512×768（立绘）
+- 建议使用 NovelAI / Niji / SD 模型
+- 提示词可直接复制使用
+- 大部分国内 AI 绘画工具同时支持中英文
+
+============================================================
+一、角色立绘（存放到 game/images/）
+============================================================
+
+------------------------------------------------------------
+1. 张闻晦 (zwh)
+   文件名前缀: zwh_
+   能力: 可进入小空间
+------------------------------------------------------------
+
+【全身立绘】
+文件名: zwh_normal.png
+英文: anime style, teenage boy, tall and thin, sharp eyes, short black hair, Chinese school uniform loosely worn, slightly mischievous smile, standing in a dimly lit corridor, full body portrait, clean lineart, bright shading, game character design
+中文: 动漫风格, 少年, 瘦高, 锐利眼神, 黑色短发, 校服松垮, 站在昏暗走廊, 全身立绘, 游戏角色设计
+负面: realistic, 3D, low quality, deformed face, extra limbs
+
+【表情集 5种】
+文件名: zwh_happy.png / zwh_angry.png / zwh_fright.png / zwh_sneaky.png
+英文: anime style character expression sheet, teenage boy with sharp eyes, headshot only, same character consistent design
+中文: 动漫表情特写, 瘦高少年, 头像, 保持角色一致
+
+------------------------------------------------------------
+2. 徐鸿昊 (xhh)
+   文件名前缀: xhh_
+   能力: 行动精力-2
+------------------------------------------------------------
+
+【全身立绘】
+文件名: xhh_normal.png
+英文: anime style, teenage boy, athletic build, short buzz cut, slightly tanned skin, energetic expression, wearing sports jacket under school uniform, dynamic pose like ready to run, full body portrait
+中文: 动漫风格, 少年, 运动员身材, 短寸头, 肤色偏黑, 充满活力, 校服内穿运动外套, 起跑姿势, 全身立绘
+
+【表情 4种】
+xhh_happy.png / xhh_angry.png / xhh_fright.png
+
+------------------------------------------------------------
+3. 严笳谌 (yjc)
+   文件名前缀: yjc_
+   能力: 能看懂特殊文字
+------------------------------------------------------------
+
+【全身立绘】
+文件名: yjc_normal.png
+英文: anime style, teenage boy, wears glasses, pale skin, scholarly look, neat school uniform, holding a book, intelligent calm eyes, full body portrait, library background suggested
+中文: 动漫风格, 少年, 戴眼镜, 皮肤白, 学霸气质, 校服整洁, 手拿书, 冷静眼神, 背景图书馆
+
+【表情 4种】
+yjc_happy.png / yjc_angry.png / yjc_fright.png
+
+------------------------------------------------------------
+4. 吴机岩 (wjy)
+   文件名前缀: wjy_
+   能力: 可关闭监控/恢复供电
+------------------------------------------------------------
+
+【全身立绘】
+文件名: wjy_normal.png
+英文: anime style, teenage boy, messy hair, tech-savvy look, screwdriver in pocket, slightly hunched posture, worn school uniform, curious but wary eyes, full body portrait
+中文: 动漫风格, 少年, 乱发, 技术宅气质, 口袋插螺丝刀, 微驼背, 好奇警惕眼神
+
+【表情 4种】
+wjy_happy.png / wjy_angry.png / wjy_fright.png
+
+------------------------------------------------------------
+5. 劳达 (ld)
+   文件名前缀: ld_
+   能力: 被发现的概率-30%
+------------------------------------------------------------
+
+【全身立绘】
+文件名: ld_normal.png
+英文: anime style, tall teenage boy, muscular build, intimidating presence, school uniform slightly tight, serious expression, standing still with arms crossed, full body portrait
+中文: 动漫风格, 少年, 高大壮实, 有压迫感, 校服略紧, 严肃表情, 抱臂站立, 全身立绘
+
+【表情 4种】
+ld_happy.png / ld_angry.png / ld_fright.png
+
+------------------------------------------------------------
+6. 面具校长
+   文件名: mask_principal.png
+------------------------------------------------------------
+
+英文: anime style, school principal, wears a plain white mask with no expression, black formal suit, standing behind a desk, mysterious and threatening aura, half body portrait, dark background, horror game antagonist
+中文: 动漫风格, 校长, 戴白色无表情面具, 黑色西装, 站在办公桌后, 神秘威胁感, 半身立绘, 黑暗背景, 恐怖游戏反派
+
+------------------------------------------------------------
+7. 黑衣人
+   文件名: blackman.png
+------------------------------------------------------------
+
+英文: anime style, two men in black suits and sunglasses, standing side by side blocking a school gate, expressionless faces, intimidating presence, full body portrait
+中文: 动漫风格, 两个穿黑西装戴墨镜的男人, 并排站立挡住校门, 无表情, 有压迫感, 全身立绘
+
+============================================================
+二、场景背景（存放到 game/images/）
+============================================================
+
+【操场】playground.png
+英文: anime style background, empty school playground, wide open view, morning sunlight, flagpole in center, no students, eery silence, teaching building in background, 1920x1080
+中文: 动漫背景, 空荡荡的学校操场, 开阔视野, 晨光, 中央旗杆, 没有学生, 诡异的寂静, 远处教学楼, 1920x1080
+
+【行政楼大厅】office_hall.png
+英文: anime style background, school administration building hallway, clean floor reflecting ceiling lights, framed calligraphy on walls, quiet atmosphere, slightly dim lighting, empty corridor, 1920x1080
+中文: 动漫背景, 行政楼走廊, 地板反射灯光, 墙上挂着书法字画, 安静昏暗, 空无一人, 1920x1080
+
+【校长办公室】office_principal.png
+英文: anime style background, school principal's office interior, large wooden desk, bookshelves filled with books, leather chairs, sunlight through window blinds, slightly old-fashioned and oppressive atmosphere, 1920x1080
+中文: 动漫背景, 校长办公室, 大木质办公桌, 书架上摆满书, 皮椅, 百叶窗透进阳光, 压抑氛围, 1920x1080
+
+【校门近景】school_gate_closeup.png
+英文: anime style background, school gate close-up view, iron gate slightly open, outside street visible but hazy, afternoon sunlight casting long shadows, 1920x1080
+中文: 动漫背景, 校门近景, 铁门微开, 外面街道模糊可见, 午后阳光拉长阴影, 1920x1080
+
+【广播室】broadcast_room.png
+英文: anime style background, school broadcast room, microphone on desk, audio equipment, window looking into empty hallway, dim lighting, single chair, 1920x1080
+中文: 动漫背景, 学校广播室, 桌上话筒, 音响设备, 窗户对着空走廊, 灯光昏暗, 1920x1080
+
+【监控室】security_room.png
+英文: anime style background, school security monitor room, wall of CCTV screens showing empty classrooms and corridors, control panel with switches, dark room lit only by screen glow, 1920x1080
+中文: 动漫背景, 学校监控室, 满墙闭路电视屏幕显示空教室和走廊, 控制面板, 仅被屏幕光照亮, 1920x1080
+
+============================================================
+三、CG 插画（存放到 game/images/cg/）
+============================================================
+
+【CG1: 六人齐聚】cg_six_in_office.png
+英文: anime style, group of 6 teenage boys in school uniforms, standing in a school principal's office, different poses and expressions, tense atmosphere, wide scene composition, game CG
+中文: 动漫风格, 六名穿校服的少年, 站在校长办公室, 不同姿势表情, 紧张气氛, 宽景构图, 游戏CG
+
+【CG2: 空操场窗景】cg_empty_playground.png
+英文: anime style, view from a window overlooking empty school playground, no students, eery silence, clouds covering sun, first-person perspective, game event CG
+中文: 动漫风格, 从窗户看空操场, 没有学生, 诡异寂静, 云遮住太阳, 第一人称视角, 游戏CG
+
+【CG3: 面具校长广播】cg_mask_broadcast.png
+英文: anime style, close-up of microphone in dark broadcast room, shadowy figure in background with white mask, atmospheric lighting, tense moment, game event CG
+中文: 动漫风格, 广播室中麦克风特写, 背景中有白色面具的阴影人影, 气氛灯光, 游戏CG
+
+============================================================
+四、UI 图标（存放到 game/gui/）
+============================================================
+
+【难度图标】
+difficulty_easy.png - 一颗星, 平静色调
+difficulty_normal.png - 两颗星, 橙色警告色  
+difficulty_nightmare.png - 三颗星, 暗红色
+
+【可丽币图标】
+coin_keli.png - 金币, 刻有"K"或校徽, 金色像素风
+
+============================================================
+五、音频资源（存放到 game/audio/）
+============================================================
+
+【新增 BGM 4首】
+bgm_daily.mp3        - 日常校园, 轻快钢琴
+bgm_unease.mp3       - 不安, 低音弦乐+钟声
+bgm_mask_theme.mp3   - 面具校长主题, 变调人声+电子音
+bgm_chase.mp3        - 追逐战, 急促鼓点
+
+【新增音效 5个】
+sfx_broadcast_static.mp3  - 广播电流噪音
+sfx_heavy_gate.mp3         - 沉重铁门声
+sfx_heartbeat.mp3          - 心跳声
+sfx_mask_sound.mp3         - 面具摩擦声
+sfx_footstep_menace.mp3    - 黑衣人脚步声
+
+============================================================
+六、可复用旧资源（无需生成）
+============================================================
+
+立绘:
+  lv_normal/happy/angry/fright.png  ← 复用原 lx_*.png
+  可丽堡立绘                       ← 复用原 gbl_*.png
+
+场景:
+  jiaoshi_1~4.jpg        教室 × 4
+  dorm_day/dusk/night/moon.png   宿舍 × 4
+  corridor_day/dusk/night.png    走廊 × 3
+  gate_*.png             校门 × 4
+  building_day/night.png 教学楼 × 2
+  canteen_day/dusk/light.png 食堂 × 3
+  gameover.png           Game Over 画面
+
+音效:
+  suhuan1.mp3 / classbell.mp3 / bang_table.mp3
+  footstep_02.mp3 / footstep_out_01.mp3
+  kb_01.mp3 / knock_door.mp3
+
+============================================================
+【国内 AI 绘画工具推荐】
+============================================================
+
+1. 通义万相 (tongyi.aliyun.com) — 阿里出品, 免费额度多
+2. 文心一格 (yige.baidu.com) — 百度出品, 中文支持好
+3. 可灵 AI (kling.kuaishou.com) — 快手出品, 画质好
+4. SeaArt (seaart.ai) — 国内稳定版, 模型多
+5. LiblibAI (liblibai.com) — 模型下载+在线生成
+
+以上工具都支持中英双语提示词, 直接复制即可使用。

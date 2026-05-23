@@ -1,0 +1,68 @@
+﻿I'm sorry, but an uncaught exception occurred.
+
+While running game code:
+  File "renpy/common/00start.rpy", line 211, in script call
+    call _gl_test
+  File "renpy/common/00gltest.rpy", line 390, in script
+    $ __gl_test()
+  File "renpy/common/00start.rpy", line 211, in script call
+    call _gl_test
+  File "renpy/common/00gltest.rpy", line 390, in script
+    $ __gl_test()
+  File "renpy/common/00gltest.rpy", line 390, in <module>
+    $ __gl_test()
+  File "renpy/common/00gltest.rpy", line 319, in _m1_00gltest__gl_test
+    _gl_performance_test()
+  File "renpy/common/00gltest.rpy", line 342, in _gl_performance_test
+    ui.interact(suppress_underlay=True, suppress_overlay=True)
+error: No available video device
+
+-- Full Traceback ------------------------------------------------------------
+
+Full traceback:
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/bootstrap.py", line 359, in bootstrap
+    renpy.main.main()
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/main.py", line 652, in main
+    run(restart)
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/main.py", line 148, in run
+    renpy.execution.run_context(True)
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/execution.py", line 958, in run_context
+    context.run()
+  File "renpy/common/00start.rpy", line 211, in script call
+    call _gl_test
+  File "renpy/common/00gltest.rpy", line 390, in script
+    $ __gl_test()
+  File "lib/python3.9/future/utils/__init__.py", line 444, in raise_
+  File "renpy/common/00start.rpy", line 211, in script call
+    call _gl_test
+  File "renpy/common/00gltest.rpy", line 390, in script
+    $ __gl_test()
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/ast.py", line 821, in execute
+    renpy.python.py_exec_bytecode(self.code.bytecode, self.hide, store=self.store)
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/python.py", line 1178, in py_exec_bytecode
+    exec(bytecode, globals, locals)
+  File "renpy/common/00gltest.rpy", line 390, in <module>
+    $ __gl_test()
+  File "renpy/common/00gltest.rpy", line 319, in _m1_00gltest__gl_test
+    _gl_performance_test()
+  File "renpy/common/00gltest.rpy", line 342, in _gl_performance_test
+    ui.interact(suppress_underlay=True, suppress_overlay=True)
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/ui.py", line 301, in interact
+    rv = renpy.game.interface.interact(roll_forward=roll_forward, **kwargs)
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/display/core.py", line 2172, in interact
+    self.start()
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/display/core.py", line 1032, in start
+    self.set_mode()
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/display/core.py", line 1354, in set_mode
+    if draw.init(virtual_size):
+  File "gl2draw.pyx", line 367, in renpy.gl2.gl2draw.GL2Draw.init
+  File "gl2draw.pyx", line 185, in renpy.gl2.gl2draw.GL2Draw.select_physical_size
+  File "/root/.openclaw/workspace/renpy-8.3.2-sdk/renpy/display/__init__.py", line 59, in get_info
+    pygame.display.init()
+  File "src/pygame_sdl2/display.pyx", line 93, in pygame_sdl2.display.init
+error: No available video device
+
+Linux-6.1.0-35-amd64-x86_64-with-glibc2.36 x86_64
+Ren'Py 8.3.2.24090902
+可堡灵之校 0.1-alpha
+Sat May 23 22:35:44 2026

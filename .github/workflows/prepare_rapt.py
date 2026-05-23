@@ -50,6 +50,22 @@ if project_setup:
         print(f"SDK not in project, linking from {sdk_src}")
         os.symlink(sdk_src, sdk_dst)
     
+    # Copy missing generated files from repo's android/ (Jinja2 templates not rendered in CI)
+    generated_files = [
+        'app/src/main/AndroidManifest.xml',
+        'app/src/main/res/values/strings.xml',
+        'renpyandroid/src/main/res/values/strings.xml',
+        'renpyandroid/src/main/java/org/renpy/android/Constants.java',
+    ]
+    repo_android = os.path.join(REPO, 'android')
+    for rel_path in generated_files:
+        src = os.path.join(repo_android, rel_path)
+        dst = os.path.join(PROJECT, rel_path)
+        if os.path.exists(src) and not os.path.exists(dst):
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(src, dst)
+            print(f"  📄 Copied missing: {rel_path}")
+    
     print(f"Project gradlew exists: {os.path.exists(os.path.join(PROJECT, 'gradlew'))}")
 else:
     print("⚠️  No gradle prototype found anywhere!")
