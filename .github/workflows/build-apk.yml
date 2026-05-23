@@ -10,27 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup Java 17
       uses: actions/setup-java@v4
-      with: { distribution: 'temurin', java-version: '17' }
-    
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
     - name: Setup Python 3.9
       uses: actions/setup-python@v5
-      with: { python-version: '3.9' }
-    
-    - name: Install deps
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
       run: |
         sudo apt-get update -q
         sudo apt-get install -y xvfb p7zip-full
-      
+
     - name: Cache Ren'Py SDK
       id: cache-renpy
       uses: actions/cache@v4
       with:
         path: renpy-sdk
         key: renpy-8.3.2
-    
+
     - name: Download Ren'Py SDK
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
@@ -38,44 +41,33 @@ jobs:
         7z x renpy-8.3.2-sdk.7z -orenpy-sdk > /dev/null
         mv renpy-sdk/renpy-8.3.2-sdk/* renpy-sdk/
         rm -rf renpy-sdk/renpy-8.3.2-sdk
-    
+
     - name: Compile game
       run: |
         xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
-      
-    - name: Build APK
+
+    - name: Build Android APK
       run: |
         cd ./renpy-sdk/rapt
-        
-        # 使用 RAPT Python API 直接构建
         export ANDROID_HOME="$PWD/Sdk"
         export JAVA_HOME="$JAVA_HOME"
-        
-        python3 << 'PYEOF'
-import sys, os, shutil
+        python3 -u -c "
+import sys, os
 sys.path.insert(0, 'buildlib')
 os.chdir('.')
-
 import rapt.interface as interface
 import rapt.configure as configure
 import rapt.build as build
-
 iface = interface.Interface()
-
-# 设置项目路径
 os.environ['RENPY_PROJECT'] = os.path.abspath(os.path.join('..', 'projects', 'goblin'))
 os.environ['RENPY_BUILD'] = os.path.abspath('build')
-
-# 配置
-print("Configuring...")
+print('Configuring...')
 configure.configure(iface)
-
-# 构建
-print("Building APK...")
+print('Building APK...')
 build.build(iface, '--release')
-print("BUILD SUCCESS")
-PYEOF
-      
+print('BUILD SUCCESS')
+"
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
