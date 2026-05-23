@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup JDK 17
       uses: actions/setup-java@v4
       with: { java-version: '17', distribution: 'temurin' }
@@ -21,32 +21,26 @@ jobs:
     - name: Install deps
       run: |
         sudo apt-get update -q
-        sudo apt-get install -y xvfb p7zip-full
+        sudo apt-get install -y xvfb
 
     - name: Cache Ren'Py SDK
       id: cache-renpy
       uses: actions/cache@v4
       with:
         path: renpy-sdk
-        key: renpy-8.3.7
+        key: renpy-8.3.7-full
 
-    - name: Download Ren'Py SDK
+    - name: Download Ren'Py SDK & RAPT
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
-        wget -q https://github.com/renpy/renpy/releases/download/8.3.7.25031702/renpy-8.3.7-sdk.tar.bz2
+        BASE=https://github.com/renpy/renpy/releases/download/8.3.7.25031702
+        wget -q $BASE/renpy-8.3.7-sdk.tar.bz2
+        wget -q $BASE/renpy-8.3.7-rapt.zip
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
-
-    - name: Debug RAPT structure
-      run: |
-        echo "=== rapt contents ==="
-        ls -la renpy-sdk/rapt/
-        echo "=== prototype ==="
-        ls renpy-sdk/rapt/prototype/ 2>/dev/null || echo "NO PROTOTYPE"
-        echo "=== project ==="
-        ls renpy-sdk/rapt/project/ 2>/dev/null || echo "NO PROJECT"
-        echo "=== rapt root ==="
-        find renpy-sdk/rapt -name "gradlew" 2>/dev/null
+        mkdir -p renpy-sdk/rapt
+        cd renpy-sdk/rapt
+        unzip -q ../../renpy-8.3.7-rapt.zip
 
     - name: Compile game
       run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
@@ -54,30 +48,11 @@ jobs:
     - name: Prepare assets
       run: python3 .github/workflows/prepare_rapt.py
 
-    - name: Setup project
-      run: |
-        # Explicitly check and copy
-        PROTOTYPE_DIR=renpy-sdk/rapt/prototype
-        PROJECT_DIR=renpy-sdk/rapt/project
-        
-        mkdir -p $PROJECT_DIR
-        
-        if [ -d "$PROTOTYPE_DIR" ]; then
-          echo "Copying from prototype..."
-          cp -rv $PROTOTYPE_DIR/* $PROJECT_DIR/ 2>&1 | head -5
-        else
-          echo "No prototype directory! Checking SDK structure..."
-          find renpy-sdk/rapt -maxdepth 3 -type d | head -20
-        fi
-        
-        ls -la $PROJECT_DIR/ | head -10
-
     - name: Build APK
       run: |
-        cd renpy-sdk/rapt/project
-        ls gradlew 2>/dev/null && echo "gradlew found" || echo "NO GRADLEW"
-        chmod +x gradlew 2>/dev/null
-        ./gradlew assembleRelease --no-daemon
+        cd renpy-sdk/rapt
+        ls -la
+        ./project/gradlew -p project assembleRelease --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
