@@ -17,6 +17,7 @@ jobs:
       with: { python-version: '3.9' }
     - name: Install deps
       run: sudo apt-get install -y xvfb
+
     - name: Cache Ren'Py SDK
       id: cache-renpy
       uses: actions/cache@v4
@@ -30,35 +31,42 @@ jobs:
         wget -q $BASE/renpy-8.3.7-rapt.zip
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
-        # RAPT zip 包含 rapt/ 目录，解压到 SDK 根目录
-        cd renpy-sdk
-        unzip -q -o ../renpy-8.3.7-rapt.zip -d . 2>/dev/null
-        # 如果解压出 rapt/rapt/ 嵌套，拉平它
-        if [ -d rapt/rapt ]; then
-          cp -r rapt/rapt/* rapt/ 2>/dev/null
-          cp -r rapt/rapt/.* rapt/ 2>/dev/null || true
+        unzip -q -o renpy-8.3.7-rapt.zip -d renpy-sdk 2>/dev/null
+        # 拉平 rapt/rapt/
+        if [ -d renpy-sdk/rapt/rapt ]; then
+          cp -r renpy-sdk/rapt/rapt/* renpy-sdk/rapt/ 2>/dev/null || true
         fi
-        ls -la rapt/ | head -10
-        find rapt -name "gradlew" -type f 2>/dev/null
 
     - name: Compile game
       run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
-    - name: Prepare assets
-      run: python3 .github/workflows/prepare_rapt.py
+
+    - name: Prepare assets & build files
+      run: |
+        python3 .github/workflows/prepare_rapt.py
+        # 把仓库里的构建配置复制到 SDK 的 prototype 和 project
+        cp android/build.gradle renpy-sdk/rapt/prototype/
+        cp android/settings.gradle renpy-sdk/rapt/prototype/ 2>/dev/null || true
+        cp android/gradle.properties renpy-sdk/rapt/prototype/
+        mkdir -p renpy-sdk/rapt/prototype/app
+        cp android/app/build.gradle renpy-sdk/rapt/prototype/app/ 2>/dev/null || true
+        # 同步到 project
+        if [ -d renpy-sdk/rapt/project ]; then
+          cp android/build.gradle renpy-sdk/rapt/project/
+          cp android/settings.gradle renpy-sdk/rapt/project/ 2>/dev/null || true
+          cp android/gradle.properties renpy-sdk/rapt/project/
+          mkdir -p renpy-sdk/rapt/project/app
+          cp android/app/build.gradle renpy-sdk/rapt/project/app/ 2>/dev/null || true
+        fi
+
     - name: Build APK
       run: |
-        cd renpy-sdk
-        GRADLEW=$(find . -name "gradlew" -type f 2>/dev/null | head -1)
-        echo "Found gradlew: $GRADLEW"
-        PROJECT_DIR=$(dirname "$GRADLEW")
-        echo "Project: $PROJECT_DIR"
-        chmod +x "$GRADLEW"
-        cd "$PROJECT_DIR"
-        ls -la
+        cd renpy-sdk/rapt/prototype
+        chmod +x gradlew
         ./gradlew assembleRelease --no-daemon
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: goblin-release
-        path: renpy-sdk/**/app/build/outputs/apk/release/*.apk
+        path: renpy-sdk/rapt/prototype/app/build/outputs/apk/release/*.apk
         if-no-files-found: error
