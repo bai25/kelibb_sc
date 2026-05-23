@@ -15,7 +15,26 @@ if os.path.exists(os.path.join(RENPY, 'renpy', 'common')):
     print(f"Common files: {len(common_files)} ({common_files[0] if common_files else 'empty'})")
 
 RAPT = os.path.join(RENPY, 'rapt')
-ASSETS = os.path.join(RAPT, 'project', 'app', 'src', 'main', 'assets')
+
+# Ensure project directory exists (copy from prototype if needed)
+PROJECT = os.path.join(RAPT, 'project')
+if not os.path.exists(os.path.join(PROJECT, 'gradlew')):
+    PROTOTYPE = os.path.join(RAPT, 'prototype')
+    if os.path.exists(PROTOTYPE):
+        print(f"Copying prototype to project...")
+        for item in os.listdir(PROTOTYPE):
+            s = os.path.join(PROTOTYPE, item)
+            d = os.path.join(PROJECT, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                shutil.copy2(s, d)
+    else:
+        print(f"⚠️  No prototype directory found")
+
+print(f"Project gradlew exists: {os.path.exists(os.path.join(PROJECT, 'gradlew'))}")
+
+ASSETS = os.path.join(PROJECT, 'app', 'src', 'main', 'assets')
 GAME = os.path.join(REPO, 'game')
 
 print(f"GAME exists: {os.path.exists(GAME)}")
