@@ -37,23 +37,47 @@ jobs:
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
 
+    - name: Debug RAPT structure
+      run: |
+        echo "=== rapt contents ==="
+        ls -la renpy-sdk/rapt/
+        echo "=== prototype ==="
+        ls renpy-sdk/rapt/prototype/ 2>/dev/null || echo "NO PROTOTYPE"
+        echo "=== project ==="
+        ls renpy-sdk/rapt/project/ 2>/dev/null || echo "NO PROJECT"
+        echo "=== rapt root ==="
+        find renpy-sdk/rapt -name "gradlew" 2>/dev/null
+
     - name: Compile game
       run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
 
     - name: Prepare assets
       run: python3 .github/workflows/prepare_rapt.py
 
-    - name: Setup project dir
+    - name: Setup project
       run: |
-        mkdir -p renpy-sdk/rapt/project
-        cp -r renpy-sdk/rapt/prototype/* renpy-sdk/rapt/project/ 2>/dev/null || true
-        chmod +x renpy-sdk/rapt/project/gradlew 2>/dev/null || true
+        # Explicitly check and copy
+        PROTOTYPE_DIR=renpy-sdk/rapt/prototype
+        PROJECT_DIR=renpy-sdk/rapt/project
+        
+        mkdir -p $PROJECT_DIR
+        
+        if [ -d "$PROTOTYPE_DIR" ]; then
+          echo "Copying from prototype..."
+          cp -rv $PROTOTYPE_DIR/* $PROJECT_DIR/ 2>&1 | head -5
+        else
+          echo "No prototype directory! Checking SDK structure..."
+          find renpy-sdk/rapt -maxdepth 3 -type d | head -20
+        fi
+        
+        ls -la $PROJECT_DIR/ | head -10
 
     - name: Build APK
-      working-directory: renpy-sdk/rapt/project
-      env:
-        ANDROID_HOME: ${{ github.workspace }}/renpy-sdk/rapt/Sdk
-      run: ./gradlew assembleRelease --no-daemon
+      run: |
+        cd renpy-sdk/rapt/project
+        ls gradlew 2>/dev/null && echo "gradlew found" || echo "NO GRADLEW"
+        chmod +x gradlew 2>/dev/null
+        ./gradlew assembleRelease --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
