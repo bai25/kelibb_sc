@@ -30,12 +30,16 @@ jobs:
         wget -q $BASE/renpy-8.3.7-rapt.zip
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
+        # RAPT zip 包含 rapt/ 目录，解压到 SDK 根目录
         cd renpy-sdk
-        unzip -q ../renpy-8.3.7-rapt.zip
-        # RAPT zip 解压后可能是 rapt/ 或直接在根目录
-        echo "=== after rapt unzip ==="
-        ls -la
-        find . -name "gradlew" -type f 2>/dev/null
+        unzip -q -o ../renpy-8.3.7-rapt.zip -d . 2>/dev/null
+        # 如果解压出 rapt/rapt/ 嵌套，拉平它
+        if [ -d rapt/rapt ]; then
+          cp -r rapt/rapt/* rapt/ 2>/dev/null
+          cp -r rapt/rapt/.* rapt/ 2>/dev/null || true
+        fi
+        ls -la rapt/ | head -10
+        find rapt -name "gradlew" -type f 2>/dev/null
 
     - name: Compile game
       run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile

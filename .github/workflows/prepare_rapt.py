@@ -18,21 +18,41 @@ RAPT = os.path.join(RENPY, 'rapt')
 
 # Ensure project directory exists (copy from prototype if needed)
 PROJECT = os.path.join(RAPT, 'project')
-if not os.path.exists(os.path.join(PROJECT, 'gradlew')):
-    PROTOTYPE = os.path.join(RAPT, 'prototype')
-    if os.path.exists(PROTOTYPE):
-        print(f"Copying prototype to project...")
-        for item in os.listdir(PROTOTYPE):
-            s = os.path.join(PROTOTYPE, item)
+
+# Look for gradle build files in multiple locations
+proto_candidates = [
+    os.path.join(RAPT, 'prototype'),
+    os.path.join(RAPT, 'rapt', 'prototype'),
+    os.path.join(REPO, 'android'),
+]
+
+project_setup = False
+for proto in proto_candidates:
+    if os.path.exists(os.path.join(proto, 'gradlew')):
+        print(f"Found gradle project at: {proto}")
+        # Copy all files from prototype to project
+        for item in os.listdir(proto):
+            s = os.path.join(proto, item)
             d = os.path.join(PROJECT, item)
             if os.path.isdir(s):
                 shutil.copytree(s, d, dirs_exist_ok=True)
             else:
+                os.makedirs(os.path.dirname(d), exist_ok=True)
                 shutil.copy2(s, d)
-    else:
-        print(f"⚠️  No prototype directory found")
+        project_setup = True
+        break
 
-print(f"Project gradlew exists: {os.path.exists(os.path.join(PROJECT, 'gradlew'))}")
+if project_setup:
+    # Copy RAPT Sdk into project if not there
+    sdk_src = os.path.join(RAPT, 'Sdk')
+    sdk_dst = os.path.join(PROJECT, '..', 'Sdk')
+    if not os.path.exists(sdk_dst):
+        print(f"SDK not in project, linking from {sdk_src}")
+        os.symlink(sdk_src, sdk_dst)
+    
+    print(f"Project gradlew exists: {os.path.exists(os.path.join(PROJECT, 'gradlew'))}")
+else:
+    print("⚠️  No gradle prototype found anywhere!")
 
 ASSETS = os.path.join(PROJECT, 'app', 'src', 'main', 'assets')
 GAME = os.path.join(REPO, 'game')
