@@ -38,35 +38,19 @@ jobs:
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
         wget -q https://www.renpy.org/dl/8.3.2/renpy-8.3.2-sdk.7z
-        7z x renpy-8.3.2-sdk.7z -orenpy-sdk > /dev/null
+        7z x renpy-8.3.2-sdk.7z -orenpy-sdk
         mv renpy-sdk/renpy-8.3.2-sdk/* renpy-sdk/
         rm -rf renpy-sdk/renpy-8.3.2-sdk
 
     - name: Compile game
-      run: |
-        xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
+      run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
 
     - name: Build Android APK
       run: |
         cd ./renpy-sdk/rapt
-        export ANDROID_HOME="$PWD/Sdk"
-        export JAVA_HOME="$JAVA_HOME"
-        python3 -u -c "
-import sys, os
-sys.path.insert(0, 'buildlib')
-os.chdir('.')
-import rapt.interface as interface
-import rapt.configure as configure
-import rapt.build as build
-iface = interface.Interface()
-os.environ['RENPY_PROJECT'] = os.path.abspath(os.path.join('..', 'projects', 'goblin'))
-os.environ['RENPY_BUILD'] = os.path.abspath('build')
-print('Configuring...')
-configure.configure(iface)
-print('Building APK...')
-build.build(iface, '--release')
-print('BUILD SUCCESS')
-"
+        export ANDROID_HOME=$PWD/Sdk
+        export JAVA_HOME=$JAVA_HOME
+        python3 $GITHUB_WORKSPACE/.github/workflows/build_apk.py
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
