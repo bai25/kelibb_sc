@@ -1,0 +1,24 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'kebiaoling'
+include ':app'
+include ':renpyandroid'
+include ':renpyiap'
+include ':ff1'
+include ':ff2'
+include ':ff3'
+include ':ff4'

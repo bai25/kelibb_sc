@@ -1,0 +1,31 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.kebiaoling.school'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.kebiaoling.school"
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName "0.2-alpha"
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation project(':renpyandroid')
+}
