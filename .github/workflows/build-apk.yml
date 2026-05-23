@@ -1,31 +1,24 @@
 name: Android CI
-
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  push: { branches: ["main"] }
+  pull_request: { branches: ["main"] }
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-
+    
     - name: Setup JDK 17
       uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      with: { java-version: '17', distribution: 'temurin' }
 
     - name: Setup Python 3.9
       uses: actions/setup-python@v5
-      with:
-        python-version: '3.9'
+      with: { python-version: '3.9' }
 
-    - name: Install dependencies
+    - name: Install deps
       run: |
         sudo apt-get update -q
         sudo apt-get install -y xvfb p7zip-full
@@ -35,7 +28,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: renpy-sdk
-        key: ${{ runner.os }}-renpy-8.3.7
+        key: renpy-8.3.7
 
     - name: Download Ren'Py SDK
       if: steps.cache-renpy.outputs.cache-hit != 'true'
@@ -44,25 +37,23 @@ jobs:
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
 
-    - name: Compile game scripts
-      run: |
-        xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
+    - name: Compile game
+      run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
 
-    - name: Prepare RAPT assets
-      run: |
-        python3 .github/workflows/prepare_rapt.py
+    - name: Prepare assets
+      run: python3 .github/workflows/prepare_rapt.py
 
-    - name: Build APK with Gradle
+    - name: Setup project dir
+      run: |
+        mkdir -p renpy-sdk/rapt/project
+        cp -r renpy-sdk/rapt/prototype/* renpy-sdk/rapt/project/ 2>/dev/null || true
+        chmod +x renpy-sdk/rapt/project/gradlew 2>/dev/null || true
+
+    - name: Build APK
+      working-directory: renpy-sdk/rapt/project
       env:
         ANDROID_HOME: ${{ github.workspace }}/renpy-sdk/rapt/Sdk
-        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-      run: |
-        cd renpy-sdk/rapt
-        chmod +x project/gradlew
-        cd project
-        ls -la
-        pwd
-        ./gradlew assembleRelease --no-daemon
+      run: ./gradlew assembleRelease --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
