@@ -92,17 +92,16 @@ with open(os.path.join(ASSETS, 'x-android.json'), 'w') as f:
 print("✅ x-android.json")
 
 # 2. Copy game files with x- prefix
-def copy_with_prefix(src, dst, prefix='x-'):
+# Ren'Py expects: game/<dir>/<file> → assets/x-<dir>/<file>
+def copy_subdir(src, dst):
+    """Copy a subdir (e.g. game/images/) to assets/x-images/."""
     if not os.path.exists(src):
         print(f"  ⚠️  src not found: {src}")
         return
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, prefix + item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d)
-        else:
-            shutil.copy2(s, d)
+    name = os.path.basename(src)  # 'images'
+    dest = os.path.join(dst, 'x-' + name)  # 'assets/x-images'
+    shutil.copytree(src, dest)
+    print(f"  📂 x-{name}/ ({sum(len(files) for _, _, files in os.walk(src))} files)")
 
 for f in ['script.rpyc', 'options.rpyc', 'screens.rpyc', 'gui.rpyc']:
     src = os.path.join(GAME, f)
@@ -112,7 +111,7 @@ for f in ['script.rpyc', 'options.rpyc', 'screens.rpyc', 'gui.rpyc']:
         print(f"  ⚠️  Missing: {f}")
 
 for subdir in ['images', 'audio', 'gui', 'libs']:
-    copy_with_prefix(os.path.join(GAME, subdir), ASSETS)
+    copy_subdir(os.path.join(GAME, subdir), ASSETS)
 
 ttf_src = os.path.join(GAME, 'SourceHanSansLite.ttf')
 if os.path.exists(ttf_src):
