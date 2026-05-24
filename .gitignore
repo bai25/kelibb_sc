@@ -30,6 +30,9 @@ build_output/
 .DS_Store
 Thumbs.db
 
+# CI 下载的完整 Ren'Py SDK（repo 只保留 android/ 构建目录）
+renpy-sdk/
+
 # Generated AI assets
 generate_*.py
 *.zip
