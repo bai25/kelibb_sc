@@ -5,14 +5,18 @@ plugins {
 android {
     namespace 'org.renpy.android'
 
-    compileSdkVersion 35
+    compileSdk 35
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 35
+        minSdk 21
+        targetSdk 35
         versionCode 1
         versionName "1.0"
+    }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     buildTypes {
