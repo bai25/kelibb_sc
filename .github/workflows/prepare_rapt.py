@@ -43,12 +43,7 @@ for proto in proto_candidates:
         break
 
 if project_setup:
-    # Copy RAPT Sdk into project if not there
-    sdk_src = os.path.join(RAPT, 'Sdk')
-    sdk_dst = os.path.join(PROJECT, '..', 'Sdk')
-    if not os.path.exists(sdk_dst):
-        print(f"SDK not in project, linking from {sdk_src}")
-        os.symlink(sdk_src, sdk_dst)
+    # RAPT Sdk 已存在 renpy-sdk/rapt/Sdk，project/../Sdk 指向同一路径，无需 symlink
     
     # Copy missing generated files from repo's android/ (Jinja2 templates not rendered in CI)
     generated_files = [
