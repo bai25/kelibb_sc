@@ -16,7 +16,7 @@ errors.txt
 # Ren'Py generated
 game/cache/
 game/renpy/
-renpy/
+/renpy/
 *.pyc
 __pycache__/
 
