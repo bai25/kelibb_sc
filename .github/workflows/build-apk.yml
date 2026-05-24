@@ -69,6 +69,15 @@ jobs:
           cp -r android/app/src "$DST/app/" 2>/dev/null || true
         done
 
+    - name: Sync assets from project to prototype
+      run: |
+        # prepare_rapt.py 把素材放到 project/，但构建从 prototype/ 跑
+        if [ -d renpy-sdk/rapt/project/app/src/main/assets ]; then
+          rm -rf renpy-sdk/rapt/prototype/app/src/main/assets
+          cp -r renpy-sdk/rapt/project/app/src/main/assets renpy-sdk/rapt/prototype/app/src/main/assets
+          echo "📦 Synced $(find renpy-sdk/rapt/prototype/app/src/main/assets -type f | wc -l) asset files"
+        fi
+
     - name: Build APK
       run: |
         cd renpy-sdk/rapt/prototype

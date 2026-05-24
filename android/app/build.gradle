@@ -12,6 +12,16 @@ android {
         targetSdk 35
         versionCode 1
         versionName "0.2-alpha"
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+    }
+
+    androidResources {
+        noCompress = [ 'ogv', 'avi', 'mpg', 'webm', 'mkv', 'mp4',
+                       'mp3', 'mp2', 'ogg', 'opus', 'flac',
+                       'png', 'jpg', 'jpeg', 'webp',
+                       'rpyc', 'rpymc', 'rpyb' ]
     }
     
     compileOptions {
