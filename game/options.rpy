@@ -10,11 +10,11 @@ define gui.about = _p("""
 
 define build.name = "kebiaoling_school"
 
-## 主菜单背景（使用 gameover 画面）
-define gui.main_menu_background = "gameover.png"
+## 主菜单背景
+define gui.main_menu_background = "gate_day.png"
 
 ## 窗口标题
-python:
+init python:
     config.window_title = "可堡灵之校"
 
 ## 音效和音乐
