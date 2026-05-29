@@ -152,7 +152,7 @@ else:
     print(f"⚠️  No renpy/common at {common_src}")
 
 # 4. Presplash
-for name, img in [('android-presplash.jpg', 'gameover.webp'), ('android-downloading.jpg', 'gate_day.webp')]:
+for name, img in [('android-presplash.jpg', 'gameover.jpg'), ('android-downloading.jpg', 'gate_day.jpg')]:
     src = os.path.join(GAME, 'images', img)
     if os.path.exists(src):
         shutil.copy2(src, os.path.join(ASSETS, name))

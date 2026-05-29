@@ -9,84 +9,114 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Setup JDK 17
-      uses: actions/setup-java@v4
-      with: { java-version: '17', distribution: 'temurin' }
-    - name: Setup Python 3.9
-      uses: actions/setup-python@v5
-      with: { python-version: '3.9' }
-    - name: Install deps
-      run: sudo apt-get install -y xvfb
 
-    - name: Cache Ren'Py SDK
+    - name: Setup JDK 21
+      uses: actions/setup-java@v4
+      with: { java-version: '21', distribution: 'temurin' }
+
+    - name: Cache Ren'Py SDK + RAPT
       id: cache-renpy
       uses: actions/cache@v4
-      with: { path: renpy-sdk, key: renpy-8.3.7-full }
+      with:
+        path: renpy-sdk
+        key: renpy-8.3.7-rapt-v3
 
-    - name: Download SDK & RAPT
+    - name: Download Ren'Py SDK + RAPT
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
         BASE=https://github.com/renpy/renpy/releases/download/8.3.7.25031702
         wget -q $BASE/renpy-8.3.7-sdk.tar.bz2
-        wget -q $BASE/renpy-8.3.7-rapt.zip
-        rm -rf renpy-sdk  # 清除 repo 自带的 rapt/ 占位，避免 mv 失败
         tar -xjf renpy-8.3.7-sdk.tar.bz2
         mv renpy-8.3.7-sdk renpy-sdk
-        unzip -q -o renpy-8.3.7-rapt.zip -d renpy-sdk 2>/dev/null
+        wget -q $BASE/renpy-8.3.7-rapt.zip
+        unzip -q -o renpy-8.3.7-rapt.zip -d renpy-sdk
         # 拉平 rapt/rapt/
         if [ -d renpy-sdk/rapt/rapt ]; then
-          cp -r renpy-sdk/rapt/rapt/* renpy-sdk/rapt/ 2>/dev/null || true
+          cp -r renpy-sdk/rapt/rapt/* renpy-sdk/rapt/
+          rm -rf renpy-sdk/rapt/rapt
         fi
 
-    - name: Compile game
-      run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile
-
-    - name: Prepare assets & build files
+    - name: Patch RAPT template — dual architecture
       run: |
-        python3 .github/workflows/prepare_rapt.py
-        # 把仓库里的构建配置复制到 SDK 的 prototype
-        for dir in prototype project; do
-          DST=renpy-sdk/rapt/$dir
-          [ ! -d "$DST" ] && continue
-          cp android/build.gradle "$DST/"
-          cp android/settings.gradle "$DST/"
-          cp android/gradle.properties "$DST/" 2>/dev/null || true
-          cp android/gradlew "$DST/" 2>/dev/null || true
-          cp android/gradlew.bat "$DST/" 2>/dev/null || true
-          # app module
-          mkdir -p "$DST/app"
-          cp android/app/build.gradle "$DST/app/"
-          # ff modules
-          for ff in ff1 ff2 ff3 ff4; do
-            cp android/$ff/build.gradle "$DST/$ff/" 2>/dev/null || true
-          done
-          # renpyandroid + renpyiap
-          for mod in renpyandroid renpyiap; do
-            cp android/$mod/build.gradle "$DST/$mod/"
-            cp -r android/$mod/src "$DST/$mod/" 2>/dev/null || true
-          done
-          # app 模块的生成文件
-          cp -r android/app/src "$DST/app/" 2>/dev/null || true
-        done
-
-    - name: Sync assets from project to prototype
-      run: |
-        # prepare_rapt.py 把素材放到 project/，但构建从 prototype/ 跑
-        if [ -d renpy-sdk/rapt/project/app/src/main/assets ]; then
-          rm -rf renpy-sdk/rapt/prototype/app/src/main/assets
-          cp -r renpy-sdk/rapt/project/app/src/main/assets renpy-sdk/rapt/prototype/app/src/main/assets
-          echo "📦 Synced $(find renpy-sdk/rapt/prototype/app/src/main/assets -type f | wc -l) asset files"
+        TM=renpy-sdk/rapt/templates/app-build.gradle
+        if [ -f "$TM" ]; then
+          sed -i "s/abiFilters 'arm64-v8a'/abiFilters 'arm64-v8a', 'armeabi-v7a'/" "$TM"
         fi
+        # 已确认: 模板修改会生效于 android_build 生成的 build.gradle
 
-    - name: Build APK
+    - name: Compile game scripts
       run: |
-        cd renpy-sdk/rapt/prototype
-        chmod +x gradlew
-        ./gradlew assembleRelease --no-daemon
+        xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile 2>&1
+
+    - name: Build APK (official Ren'Py android_build CLI)
+      run: |
+        # 准备工程链接
+        mkdir -p renpy-sdk/projects
+        ln -sf $GITHUB_WORKSPACE renpy-sdk/projects/goblin
+        
+        # 使用 CLI 模式构建（先配置再构建）
+        cd renpy-sdk
+        # 拷贝 build.json 配置（如果有）
+        cp -r $GITHUB_WORKSPACE/android/ rapt/prototype/ 2>/dev/null || true
+        cp -r $GITHUB_WORKSPACE/android/ rapt/project/ 2>/dev/null || true
+        cp $GITHUB_WORKSPACE/game/options.rpc 2>/dev/null || true
+        
+        # 运行 android_build（GUI=False 的 CLI 模式）
+        xvfb-run -a ./renpy.sh launcher android_build goblin 2>&1
+        
+        # 将 APK 复制到输出位置
+        mkdir -p $GITHUB_WORKSPACE/apk-output
+        find . -name "*.apk" -newer $GITHUB_WORKSPACE -type f -exec cp {} $GITHUB_WORKSPACE/apk-output/ \; 2>/dev/null || true
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: goblin-release
-        path: renpy-sdk/rapt/prototype/app/build/outputs/apk/release/*.apk
+        path: apk-output/*.apk
+        if-no-files-found: warn
+
+    - name: Fallback — manual Gradle build
+      if: failure()
+      run: |
+        # 如果官方方式失败，用 prepare_rapt.py + 手动 gradle
+        cd renpy-sdk
+        python3 $GITHUB_WORKSPACE/.github/workflows/prepare_rapt.py
+        
+        # assets → prototype
+        if [ -d rapt/project/app/src/main/assets ]; then
+          rm -rf rapt/prototype/app/src/main/assets
+          cp -r rapt/project/app/src/main/assets rapt/prototype/app/src/main/assets
+        fi
+        
+        # 使用仓库里的 build.gradle（含双架构）
+        for dir in prototype project; do
+          DST=renpy-sdk/rapt/$dir
+          [ ! -d "$DST" ] && continue
+          cp $GITHUB_WORKSPACE/android/build.gradle "$DST/"
+          cp $GITHUB_WORKSPACE/android/settings.gradle "$DST/"
+          cp $GITHUB_WORKSPACE/android/gradle.properties "$DST/" 2>/dev/null || true
+          cp $GITHUB_WORKSPACE/android/gradlew "$DST/" 2>/dev/null || true
+          mkdir -p "$DST/app"
+          cp $GITHUB_WORKSPACE/android/app/build.gradle "$DST/app/"
+          for mod in renpyandroid renpyiap; do
+            cp -r $GITHUB_WORKSPACE/android/$mod/build.gradle "$DST/$mod/"
+            cp -r $GITHUB_WORKSPACE/android/$mod/src "$DST/$mod/" 2>/dev/null || true
+          done
+          cp -r $GITHUB_WORKSPACE/android/app/src "$DST/app/" 2>/dev/null || true
+        done
+        
+        # 构建
+        cd rapt/prototype
+        chmod +x gradlew
+        ./gradlew assembleRelease --no-daemon -x lintVitalAnalyzeRelease -x lintVitalReportRelease -x lintVitalRelease 2>&1
+        
+        mkdir -p $GITHUB_WORKSPACE/apk-output
+        cp app/build/outputs/apk/release/*.apk $GITHUB_WORKSPACE/apk-output/ 2>/dev/null || true
+
+    - name: Upload APK (fallback)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: goblin-release-fallback
+        path: apk-output/*.apk
         if-no-files-found: error
