@@ -13,41 +13,54 @@ jobs:
       uses: actions/setup-java@v4
       with: { java-version: '21', distribution: 'temurin' }
 
-    - name: Cache SDK
+    - name: Cache SDK (outside workspace)
       id: cache-renpy
       uses: actions/cache@v4
       with:
-        path: renpy-sdk
-        key: renpy-8.3.7-full
+        path: /opt/renpy-sdk
+        key: renpy-8.3.7-sdk-v2
 
     - name: Download SDK + RAPT
       if: steps.cache-renpy.outputs.cache-hit != 'true'
       run: |
+        mkdir -p /opt/renpy-sdk
+        cd /opt/renpy-sdk
         BASE=https://github.com/renpy/renpy/releases/download/8.3.7.25031702
         wget -q $BASE/renpy-8.3.7-sdk.tar.bz2
         tar -xjf renpy-8.3.7-sdk.tar.bz2
-        mv renpy-8.3.7-sdk renpy-sdk
+        mv renpy-8.3.7-sdk/* .
+        rm -rf renpy-8.3.7-sdk renpy-8.3.7-sdk.tar.bz2
         wget -q $BASE/renpy-8.3.7-rapt.zip
-        unzip -q -o renpy-8.3.7-rapt.zip -d renpy-sdk
-        if [ -d renpy-sdk/rapt/rapt ]; then
-          cp -r renpy-sdk/rapt/rapt/* renpy-sdk/rapt/
+        unzip -q -o renpy-8.3.7-rapt.zip
+        rm -f renpy-8.3.7-rapt.zip
+        if [ -d rapt/rapt ]; then
+          cp -r rapt/rapt/* rapt/
+          rm -rf rapt/rapt
         fi
+        # Fix rapt/Sdk symlinks — 移除引起死循环的符号链接
+        rm -rf rapt/Sdk 2>/dev/null || true
 
     - name: Patch RAPT — dual architecture
       run: |
         sed -i "s/abiFilters 'arm64-v8a'/abiFilters 'arm64-v8a', 'armeabi-v7a'/" \
-          renpy-sdk/rapt/templates/app-build.gradle
+          /opt/renpy-sdk/rapt/templates/app-build.gradle
 
     - name: Generate keystore
       run: |
-        keytool -genkey -v -keystore android.keystore \
+        keytool -genkey -v -keystore $GITHUB_WORKSPACE/android.keystore \
           -alias android -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass android -keypass android \
           -dname "CN=CI, OU=Build, O=Goblin, L=Beijing, ST=Beijing, C=CN"
 
+    - name: Point to system Android SDK
+      run: |
+        # 告诉 RAPT 使用系统预装的 Android SDK，避免 rapt/Sdk symlink 死循环
+        echo "/usr/local/lib/android/sdk" > /opt/renpy-sdk/rapt/sdk.txt
+        echo "SDK at: $(cat /opt/renpy-sdk/rapt/sdk.txt)"
+
     - name: Build APK (official)
       run: |
-        cd renpy-sdk
+        cd /opt/renpy-sdk
         xvfb-run -a ./renpy.sh launcher android_build "$GITHUB_WORKSPACE" 2>&1
         mkdir -p $GITHUB_WORKSPACE/apk-output
         cp rapt/bin/*.apk $GITHUB_WORKSPACE/apk-output/ 2>/dev/null || true
