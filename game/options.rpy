@@ -11,7 +11,7 @@ define gui.about = _p("""
 define build.name = "kebiaoling_school"
 
 ## 主菜单背景
-define gui.main_menu_background = "gate_day.png"
+define gui.main_menu_background = "gate_day.webp"
 
 ## 窗口标题
 init python:
@@ -42,7 +42,7 @@ default preferences.afm_time = 15
 define config.save_directory = "kebiaoling-1778953410"
 
 ## 图标
-define config.window_icon = "gui/window_icon.png"
+define config.window_icon = "gui/window_icon.webp"
 
 ## 构建配置
 init python:
