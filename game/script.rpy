@@ -663,17 +663,30 @@ label w1d2_broadcast:
     jump w1d3_empty_school
 
 # ============================================================
-# w1d3 · 空无一人
+# w1d3 · 空无一人的校园（探索生存）
 # ============================================================
+# 新增变量: 收集道具
+default keys_inv = []
+default docs_found = []
+default wxj_alert = 0       # 吴玄吉警戒度 0~100
+default hide_cooldown = 0   # 躲藏冷却
+
 label w1d3_empty_school:
-    
+
     play music "suhuan1.mp3" fadein 2.0 loop
 
-    scene dorm_dusk
+    scene dorm_day
     with fade
     show screen game_hud_v2
 
     "第三天。"
+
+    $ d = 3
+    $ stamina = min(stamina_max, stamina + 10)
+    $ keys_inv = []
+    $ docs_found = []
+    $ wxj_alert = 0
+
     "你睁开眼的时候，觉得哪里不对。"
 
     show lv normal at center
@@ -696,11 +709,9 @@ label w1d3_empty_school:
     "日光灯亮着，但没有人。"
     "连打扫卫生的阿姨都不在。"
 
-    show lv fright
     "你快步走到楼梯口。"
     "楼下也没有人。"
-    "整个宿舍楼——"
-    "像被按下了静音键。"
+    "整个宿舍楼——像被按下了静音键。"
 
     "你走出宿舍楼。"
 
@@ -718,463 +729,505 @@ label w1d3_empty_school:
     "没有人回答。"
     "只有你的声音在空旷的校园里回荡。"
 
-    "你试着拨手机——"
-    "无信号。"
-    "意料之中。"
+    lv "……手机。"
+    "你摸了摸口袋——空的。"
+    "你忘了带。或者说——"
+    "它根本不在你身边。"
+
+    "你意识到一个可怕的事实："
+    "你被困在了一个空无一人的学校里。"
+    "没有老师，没有同学，没有信号。"
+    "只有你。"
+
+    show lv normal
+    "你需要弄清楚发生了什么。"
+    "但首先——你需要装备自己。"
+
+    jump w1d3_explore
+
+# ============================================================
+# w1d3 · 探索主循环
+# ============================================================
+label w1d3_explore:
+
+    $ hide_cooldown = max(0, hide_cooldown - 1)
+
+    if wxj_alert >= 100:
+        "你听到远处传来脚步声。"
+        "吴玄吉就在附近。"
+        jump w1d3_wxj_chase
+
+    scene black
+    with dissolve
+
+    "你站在校园中央。"
+    "周围一片死寂。"
 
     menu:
-        "你决定："
-        "朝行政楼走去":
-            jump w1d3_admin_building
-        "躲进厕所":
-            jump w1d3_hide_toilet
+        "去哪里？"
+        "教学楼（寻找线索）":
+            jump w1d3_classroom
+        "行政楼（可能有人）" if "admin_key" not in keys_inv:
+            "行政楼大门紧锁。"
+            "你需要一把钥匙。"
+            jump w1d3_explore
+        "行政楼（已解锁）" if "admin_key" in keys_inv:
+            jump w1d3_admin
+        "食堂":
+            jump w1d3_canteen
+        "宿舍楼（休息恢复精力）":
+            jump w1d3_dorm_rest
+        "查看背包":
+            jump w1d3_inventory
 
 # ============================================================
-# w1d3 · 行政楼
+# w1d3 · 背包
 # ============================================================
-label w1d3_admin_building:
+label w1d3_inventory:
+    scene black
+    with dissolve
+
+    "你检查了一下随身物品。"
+
+    if not keys_inv and not docs_found:
+        "你身上什么也没有。"
+    else:
+        if keys_inv:
+            "你口袋里有钥匙。"
+            $ key_names = {"admin_key": "行政楼钥匙", "library_key": "图书馆钥匙", "locker_key": "储物柜钥匙"}
+            $ key_list = [key_names.get(k, k) for k in keys_inv]
+            python:
+                for k_name in key_list:
+                    renpy.say(None, "  - " + k_name)
+        if docs_found:
+            "你还收集了一些文件。"
+            $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
+            $ doc_list = [doc_names.get(d, d) for d in docs_found]
+            python:
+                for d_name in doc_list:
+                    renpy.say(None, "  - " + d_name)
+        if "doc_newspaper" in docs_found:
+            "（你可以阅读找到的文件）"
+            menu:
+                "阅读旧报纸":
+                    jump w1d3_read_newspaper
+                "关上背包":
+                    jump w1d3_explore
+        if "doc_contract" in docs_found:
+            menu:
+                "阅读校长合同":
+                    jump w1d3_read_contract
+                "关上背包":
+                    jump w1d3_explore
+        if "doc_student_list" in docs_found:
+            menu:
+                "阅读学生名单":
+                    jump w1d3_read_student_list
+                "关上背包":
+                    jump w1d3_explore
+
+    jump w1d3_explore
+
+# ============================================================
+# w1d3 · 可阅读文件
+# ============================================================
+label w1d3_read_newspaper:
+    "一份泛黄的报纸剪报。"
+    "日期是十五年前。"
+    "标题：《城东中学集体失踪案告破——警方不予立案》"
+    "「……调查显示，六名学生在春游前夕同时失踪。"
+    "校方称学生已请假返乡，但家长表示从未收到通知……」"
+    "下面还有一行小字手写批注："
+    "「同样的地方，同样的事。历史在重复。—老陈」"
+    jump w1d3_inventory
+
+label w1d3_read_contract:
+    "一份校长手写的合同。纸张有被烧过的痕迹。"
+    "「本人自愿献出六名学生的生命力，以换取[涂黑]的力量。"
+    "作为交换，学校将获得十年繁荣。」"
+    "落款处是校长的签名和指印。"
+    "旁边还有另一个签名——字迹潦草，但勉强能认出是「吴」字。"
+    jump w1d3_inventory
+
+label w1d3_read_student_list:
+    "一张打印的学生名单。"
+    "上面列着六个名字，旁边标注了编号。"
+    "你的名字——吕文强——排在第三位。"
+    "第一位：徐鸿昊"
+    "第二位：严笳谌"
+    "第三位：吕文强"
+    "第四位：张闻晦"
+    "第五位：吴机岩"
+    "第六位：劳达"
+    "名单底部有红色的手写字："
+    "「顺序已定，不可更改。」"
+    jump w1d3_inventory
+
+# ============================================================
+# w1d3 · 教学楼
+# ============================================================
+label w1d3_classroom:
+    scene classroom_day
+    with fade
+
+    "你走进教学楼。"
+    "教室的门大多开着。"
+    "黑板上还留着昨天的板书。"
+    "课桌上散落着课本和文具。"
+    "像是人们突然消失了。"
+
+    $ stamina_use(5)
+
+    menu:
+        "搜索教室":
+            $ found = False
+            if "locker_key" not in keys_inv:
+                "你在讲台的抽屉里发现了一把钥匙。"
+                $ keys_inv.append("locker_key")
+                $ found = True
+            if "doc_newspaper" not in docs_found:
+                "你在一个课桌的夹层里找到了一份旧报纸剪报。"
+                $ docs_found.append("doc_newspaper")
+                $ found = True
+            if not found:
+                "教室里已经没有更多线索了。"
+            $ wxj_alert += 10
+            jump w1d3_explore
+        "上二楼看看":
+            $ stamina_use(5)
+            scene classroom_after
+            with fade
+            "二楼的情况和一楼类似。"
+            if "doc_student_list" not in docs_found:
+                "你在教师办公室的碎纸机旁发现了一张残缺的名单。"
+                $ docs_found.append("doc_student_list")
+            $ wxj_alert += 5
+            jump w1d3_explore
+        "离开这里":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 食堂
+# ============================================================
+label w1d3_canteen:
+    scene canteen_day
+    with fade
+
+    "食堂的门虚掩着。你推门进去。"
+    "后厨的灯还亮着。"
+    "灶台上放着一锅已经凉透的汤。"
+
+    $ stamina_use(3)
+
+    menu:
+        "搜索后厨":
+            "你在储物柜里找到了一些干粮和水。"
+            "虽然不是正餐，但足够补充体力。"
+            "你装了一些在身上。"
+            $ stamina = min(stamina_max, stamina + 15)
+            $ wxj_alert += 5
+            jump w1d3_explore
+        "检查冷藏室":
+            scene black
+            with dissolve
+            "你打开冷藏室的门。"
+            "里面很冷。"
+            "你注意到墙角有一个被锁上的铁柜。"
+            if "locker_key" in keys_inv:
+                "你用储物柜钥匙打开了它。"
+                if "doc_contract" not in docs_found:
+                    "里面放着一份烧了一半的文件。"
+                    $ docs_found.append("doc_contract")
+                $ wxj_alert += 10
+            else:
+                "需要钥匙。"
+            jump w1d3_explore
+        "离开":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 宿舍休息
+# ============================================================
+label w1d3_dorm_rest:
+    scene dorm_day
+    with fade
+
+    "你回到宿舍。"
+    "躺在自己的床上，你感觉到片刻的安全。"
+    "你闭上眼，休息了一会儿。"
+
+    $ stamina = min(stamina_max, stamina + 20)
+    "精力恢复了。"
+    $ wxj_alert = max(0, wxj_alert - 15)
+
+    menu:
+        "继续探索":
+            jump w1d3_explore
+        "再躺一会儿":
+            "你多躺了十分钟。"
+            $ stamina = min(stamina_max, stamina + 5)
+            $ wxj_alert = max(0, wxj_alert - 10)
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 行政楼探索
+# ============================================================
+label w1d3_admin:
     scene building_day
     with fade
 
-    "你深吸一口气，走向行政楼。"
-    "行政楼的大门虚掩着。"
-    "你推开门的瞬间——"
+    "你站在行政楼前。"
+    "这栋楼比教学楼矮一层，但看起来更加压抑。"
+    "窗户拉着窗帘，看不清里面。"
+
+    "你推开大门。"
 
     scene office_hall
     with fade
 
-    "有人。"
+    "大厅里空无一人。"
+    "墙上挂着的名人名言在惨白的灯光下显得有些阴森。"
 
-    "一个身材肥胖、留着长发的男生站在走廊尽头。"
-    "他背对着你，正在看墙上的布告栏。"
+    $ stamina_use(8)
+
+    menu:
+        "搜索一楼办公室":
+            $ found = False
+            if "admin_key" not in keys_inv:
+                "你在保安室的抽屉里找到了行政楼的备用钥匙。"
+                $ keys_inv.append("admin_key")
+                "（你已经有了，这些钥匙是另一间屋子的。）"
+                $ found = True
+            "没有更多有用的东西了。"
+            $ wxj_alert += 15
+            jump w1d3_explore
+        "上二楼":
+            scene office_hall
+            with fade
+            "你走上二楼。"
+            "走廊尽头是校长办公室。"
+            "门锁着。"
+            "但门缝下透出一丝光亮。"
+            "里面有人。"
+            $ wxj_alert += 20
+            menu:
+                "敲门":
+                    jump w1d3_knock_door
+                "撤退——被发现就完了":
+                    jump w1d3_explore
+        "离开行政楼":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 敲门
+# ============================================================
+label w1d3_knock_door:
+    "你深吸一口气——敲了敲门。"
+
+    "门内的动静停了。"
+    "脚步声。"
+    "门开了一条缝。"
 
     show wxj normal at center
     with dissolve
 
-    wxj "哦——你就是吕文强？"
+    "一张肥胖的脸从门缝里探出来。"
+    "长发遮住了半边脸。"
 
-    "他转过身来，脸上挂着温和的笑容。"
-    "但那个笑容让你很不舒服。"
+    wxj "……你是谁？"
 
     show lv normal
-    menu:
-        "你的反应："
-        "「你是谁？」":
-            lv "你是谁？其他人呢？"
-        "后退一步":
-            "你下意识地后退了一步。"
-            "他注意到了。"
-            "笑容更深了。"
+    lv "我是学生。你是？"
 
-    wxj "我叫吴玄吉。"
-    wxj "高二三班的。你应该没见过我。"
-    wxj "我一直……不太合群。"
+    wxj "吴玄吉。高二的。"
+    wxj "你是吕文强吧？"
+
+    "你知道你的名字。"
+    "这让你有些不安。"
+
+    wxj "你也是来找校长的？"
+    wxj "他不在。我来的时候就这样了。"
 
     show lv fright
-    lv "学校里的人呢？为什么一个人都没有？"
-
-    show wxj normal
-    wxj "校长在行政楼等你。"
-    wxj "他有些事想单独跟你谈谈。"
-    wxj "走吧，我带你去。"
-
-    show lv normal
     menu:
-        "跟他走？"
-        "跟上去看看":
-            jump w1d3_follow_wxj
-        "感觉不对劲，拒绝":
-            jump w1d3_refuse_wxj
+        "问他知不知道发生了什么":
+            lv "学校里的人呢？你知道怎么回事吗？"
+            wxj "不知道。我一觉醒来就这样了。"
+            wxj "我到处走了走——一个人都没有。"
+            wxj "食堂没人，教学楼没人。"
+            wxj "连保安室都没人。"
+            "他说话的时候一直在笑。"
+            "但他的眼睛里没有笑意。"
+            $ wxj_alert += 15
+            jump w1d3_explore
+        "质问他——你在校长室干什么":
+            lv "你来校长室干什么？"
+            wxj "我……"
+            "他的笑容僵住了。"
+            wxj "我就是到处看看。"
+            "他关上了门。"
+            "你听到里面传来上锁的声音。"
+            $ wxj_alert += 25
+            jump w1d3_explore
+        "撤退":
+            "你说了声打扰了，转身离开。"
+            "你感觉他在门缝里看着你的背影。"
+            jump w1d3_explore
 
 # ============================================================
-# w1d3 · 拒绝吴玄吉
+# w1d3 · 吴玄吉追逐
 # ============================================================
-label w1d3_refuse_wxj:
-    show lv angry
-    lv "……我不去。"
+label w1d3_wxj_chase:
+    stop music
 
-    show wxj normal
-    wxj "是吗。"
+    "脚步声越来越近。"
 
-    "他的笑容没有消失。"
-    "但那双眼睛里——什么情绪都没有。"
+    show wxj normal at center
+    with vpunch
 
-    show wxj angry
-    wxj "这可由不得你。"
+    wxj "吕文强——"
 
-    "他朝你迈了一步。"
-    "你转身就跑。"
+    "他找到你了。"
 
-    scene corridor_day
-    with fade
-
-    "你冲下楼梯，推开安全门——"
-    "躲进了一楼的男厕所。"
-
-    jump w1d3_hide_toilet
+    menu:
+        "跑！":
+            $ stamina_use(20)
+            "你转身就跑。"
+            jump w1d3_running
+        "躲进附近的教室":
+            if hide_cooldown <= 0:
+                jump w1d3_hide
+            else:
+                "你刚躲过一次，现在没有合适的藏身处了。"
+                "只能跑。"
+                jump w1d3_running
 
 # ============================================================
-# w1d3 · 躲进厕所
+# w1d3 · 奔跑
 # ============================================================
-label w1d3_hide_toilet:
+label w1d3_running:
+    play sound "footstep_02.mp3"
+    "你拼命跑。"
+    "楼梯在脚下飞速后退。"
+    "你推开门——冲进走廊——"
+
+    $ wxj_alert = max(0, wxj_alert - 30)
+
+    "你甩掉他了吗？"
+    "你躲进一个拐角，屏住呼吸。"
+
+    "脚步声从你面前经过——"
+    "渐渐远去。"
+
+    "你安全了。"
+
+    play music "suhuan1.mp3" fadein 2.0 loop
+
+    $ stamina_use(5)
+
+    jump w1d3_explore
+
+# ============================================================
+# w1d3 · 躲藏
+# ============================================================
+label w1d3_hide:
+    scene black
+    with dissolve
+
+    "你闪进旁边的教室，关上门，蹲在讲台后面。"
+
+    "脚步声越来越近——"
+    "然后经过了你的门口。"
+
+    "没有停下。"
+
+    "你松了一口气。"
+
+    $ wxj_alert = max(0, wxj_alert - 40)
+    $ hide_cooldown = 3
+
+    play music "suhuan1.mp3" fadein 2.0 loop
+
+    jump w1d3_explore
+
+# ============================================================
+# w1d3 · 被抓（过渡到黄昏/傍晚）
+# ============================================================
+label w1d3_caught:
     scene black
     with fade
 
-    "你锁上门，蹲在隔间里。"
-    "心跳声在狭小的空间里被放大了好几倍。"
-    "你捂住嘴，不敢发出声音。"
-
-    "一分钟。"
-    "两分钟。"
-
-    "什么也没有发生。"
-
-    "你刚松了一口气——"
+    "你没能逃掉。"
 
     show wxj normal at center
     with dissolve
 
-    "……那张脸出现在隔间门的上方。"
-
-    show lv fright
-    with vpunch
-
-    wxj "找到你了。"
+    wxj "别跑了。"
+    wxj "我带你去见校长。"
 
     menu:
         "拼了！":
-            $ stamina_use(20)
-            "你猛地推开门板，撞向吴玄吉。"
-            "他踉跄了一下——"
-            "你趁机冲了出去。"
-            jump w1d3_escape
-        "……放弃":
-            jump w1d3_caught
+            $ stamina_use(25)
+            "你猛地撞向吴玄吉。"
+            "他踉跄了两步——"
+            "你趁机挣脱，拼命往前跑。"
+            $ wxj_alert = max(0, wxj_alert - 50)
+            "这次你跑得很远，直到完全听不到他的声音才停下。"
+            play music "suhuan1.mp3" fadein 2.0 loop
+            jump w1d3_explore
+        "……放弃抵抗":
+            "你垂下肩膀。"
+            "吴玄吉带着你走向行政楼深处……"
 
-# ============================================================
-# w1d3 · 逃跑
-# ============================================================
-label w1d3_escape:
-    scene corridor_day
+            scene office_principal
+            with fade
+
+            "你被推进了一间黑暗的办公室。"
+            "门在你身后关上。"
+            "锁死了。"
+
+            "你被困住了。"
+
+            scene black
+            with fade
+
+            "不知过了多久。"
+            "门开了——"
+            "阳光从门缝里照进来。"
+
+            "是第二天早上了。"
+
+            $ stamina = stamina_max
+            $ wxj_alert = 0
+
+            "你活过了第三天。"
+
+            jump w1d4_preview
+
+label w1d4_preview:
+    scene gate_morning
     with fade
 
-    "你拼命跑。"
-    "楼梯在脚下飞速后退。"
-    "你推开一扇又一扇门——"
+    "新的一天。"
+    "你还在学校里。"
+    "但你不再是昨天那个什么都不知道的吕文强了。"
 
-    "身后的脚步声不紧不慢，"
-    "像猫逗弄猎物。"
-
-    scene hallway
-    with fade
-
-    "你冲进行政楼二楼。"
-    "走廊两侧的办公室门都锁着。"
-    "你拼命拧着一扇门的把手——"
-
-    "打不开。"
-    "全都打不开。"
-
-    "身后传来广播电流的嗡鸣声。"
-
-    play sound "footstep_02.mp3"
-
-    wxj "吕文强。"
-
-    "广播里，吴玄吉的声音带着笑意。"
-
-    wxj "我很乐意陪你玩这场猫抓老鼠的游戏。"
-
-    "他的声音在整栋楼里回荡。"
-    "你无处可逃。"
-
-    show lv fright
-    $ stamina_use(10)
-
-    scene broadcast_room
-    with fade
-
-    "你冲进走廊尽头的广播室——"
-    "吴玄吉正坐在话筒前。"
-    "他转过头，看着气喘吁吁的你。"
-
-    show wxj normal at center
-    with dissolve
-
-    wxj "自己送上门了？"
-    wxj "我喜欢诚实的孩子。"
-
-    jump w1d3_caught
-
-# ============================================================
-# w1d3 · 被抓住
-# ============================================================
-label w1d3_caught:
-    scene office_principal
-    with fade
-
-    "你被带到了校长办公室。"
-
-    "校长坐在办公桌后——"
-    "但他看起来……不太像人。"
-
-    show mask_principal at center
-    with dissolve
-
-    "黑色的面具覆盖了他的脸。"
-    "面具边缘渗出的黑色液体，正一滴一滴落在桌面上。"
-
-    mask "吕文强……"
-    mask "你比我想象中要聪明一些。"
-
-    "面具的声音低沉，像从很远的地方传来。"
-    "你注意到旁边的吴玄吉——"
-    "他的眼神变了。"
-    "不再像之前那样轻浮，而是一种……"
-    "期待？"
-
-    show wxj normal
-    wxj "校长，人带来了。"
-
-    mask "很好。"
-    mask "你做得很好。"
-
-    "吴玄吉低下头。"
-    "你在那一瞬间看到了他的表情——"
-    "他在笑。"
-    "但不是得意的笑。"
-    "是……如释重负？"
+    "你找到了一些线索。"
+    "你知道了一些不该知道的事。"
+    "而吴玄吉——"
+    "他知道你还活着。"
 
     scene black
     with fade
 
-    "你被按在椅子上。"
-    "面具缓缓向你靠近。"
-    "你感觉到——"
-    "什么东西正在进入你的身体。"
+    $ d = 4
 
-    mask "第六份……"
-    mask "收下了。"
+    "—— w1d3 结束 ——"
+    "w1d4 待续……"
 
-    "视野开始模糊。"
-    "你听到吴玄吉的声音——"
+    
+return
 
-    wxj "谢谢你，吕文强。"
-    wxj "你帮我完成了最后一步。"
-
-    "什么意思？"
-
-    scene black
-    with dissolve
-
-    $ char_alive["lv"] = False
-
-    "—— 吕文强 · 结局 ——"
-
-    jump w2_character_select
-
-# ============================================================
-# w1d3 · 跟吴玄吉走
-# ============================================================
-label w1d3_follow_wxj:
-    scene office_hall
-    with fade
-
-    wxj "这边走。"
-
-    "你跟着吴玄吉穿过走廊。"
-    "他的步伐很慢，像在享受散步。"
-    "你注意到墙上贴着一张布告——"
-    "上面是六个人的照片。"
-    "你认出其中一张是你自己。"
-
-    menu:
-        "停下看布告":
-            jump w1d3_examine_notice
-        "继续跟着走":
-            jump w1d3_continue
-
-# ============================================================
-# w1d3 · 查看布告
-# ============================================================
-label w1d3_examine_notice:
-    "你停下脚步。"
-    "布告上的六个名字——"
-    "全是你见过的那些"学生代表"。"
-    "但照片下方多了一行小字："
-
-    "「献祭顺序：第三位」"
-    "你的名字旁边——"
-    "写着「第三位」。"
-
-    show lv fright
-    "你的血液瞬间凝固了。"
-
-    wxj "怎么了？"
-
-    "吴玄吉回过头，看着你。"
-    "他的笑容依然温和。"
-    "但你现在知道那笑容下面是什么了。"
-
-    show lv angry
-    menu:
-        "质问他":
-            lv "「献祭」是怎么回事？！"
-            "吴玄吉的笑容僵了一瞬。"
-            show wxj angry
-            wxj "……你看到了啊。"
-            wxj "那就没办法了。"
-            "他叹了口气，从口袋里掏出一把折叠刀。"
-            "你转身就跑。"
-            jump w1d3_escape
-        "假装没看到":
-            "你强迫自己移开视线。"
-            "现在翻脸不是时候。"
-            "你需要信息。"
-            jump w1d3_continue
-
-# ============================================================
-# w1d3 · 继续深入
-# ============================================================
-label w1d3_continue:
-    scene office_hall
-    with fade
-
-    "你跟着吴玄吉走进走廊深处。"
-
-    wxj "你知道吗？"
-    wxj "我一直觉得自己是个普通的人。"
-    wxj "长得胖，不爱说话，没什么朋友。"
-    wxj "但校长不一样。"
-    wxj "他看得到我的价值。"
-
-    show lv normal
-    lv "……你的价值？"
-
-    wxj "他给了我一个机会。"
-    wxj "一个……改变命运的机会。"
-
-    "他停下来，回头看着你。"
-    "他的眼神里有一种狂热。"
-
-    show wxj happy
-    wxj "你知道被保送是什么感觉吗？"
-    wxj "不用高考，不用竞争——"
-    wxj "一切都安排好了。"
-    wxj "只要……付出一点点代价。"
-
-    show lv fright
-    lv "什么代价？"
-
-    wxj "六个人。"
-    wxj "校长说，只需要六个人。"
-    wxj "用六个人的生命力——"
-    wxj "唤醒那位大人。"
-
-    "「那位大人」？"
-    "你还没来得及问——"
-
-    scene office_principal
-    with fade
-
-    "校长办公室的门在你身后关上了。"
-
-    mask "吴玄吉，你做得很好。"
-
-    "面具校长从阴影中走出。"
-
-    mask "现在——"
-    mask "你可以退下了。"
-
-    show wxj normal
-    "吴玄吉低下头，恭敬地退到一边。"
-    "但你注意到——"
-    "他在笑。"
-    "那不是服从的笑。"
-    "是……"
-
-    wxj "校长。"
-    wxj "我想提一个请求。"
-
-    mask "……说。"
-
-    wxj "第三位——能不能让我来？"
-
-    "空气凝固了。"
-
-    mask "……什么意思？"
-
-    wxj "我说——"
-    wxj "他的力量，应该由我来继承。"
-
-    "吴玄吉抬起头。"
-    "他的眼睛里——"
-    "什么颜色都没有了。"
-
-    "只有黑暗。"
-
-    "面具沉默了几秒。"
-    "然后——"
-    "他笑了。"
-
-    mask "你终于想通了。"
-
-    scene black
-    with dissolve
-    play sound "footstep_02.mp3"
-
-    "那一晚，没有人知道行政楼里发生了什么。"
-    "但后来——"
-    "吴玄吉不再笑了。"
-    "他的眼神变得很冷。"
-    "像是……换了一个人。"
-
-    # 邪神附身线
-    scene broadcast_room
-    with fade
-
-    "一个星期后。"
-    "吴玄吉站在广播室里，"
-    "面前摊着一份名单。"
-    "六个人的名字。"
-    "和你之前看到的——一模一样。"
-
-    wxj "第一位……徐鸿昊。"
-    wxj "第二位……严笳谌。"
-    wxj "第三位……吕文强。"
-    wxj "第四位……张闻晦。"
-    wxj "第五位……吴机岩。"
-    wxj "第六位……劳达。"
-
-    wxj "校长用你们来唤醒邪神。"
-    wxj "但可惜——"
-    wxj "他没想到会有人比他更想要这份力量。"
-
-    wxj "从现在开始，"
-    wxj "这场游戏的规则——"
-    wxj "由我来定。"
-
-    scene black
-    with fade
-
-    "吴玄吉——"
-    "不，"
-    "现在应该叫他"新面具"了。"
-    "他获得了邪神的力量。"
-    "他的智商提升了不知道多少倍。"
-    "他策划了一场更大规模的献祭。"
-
-    $ char_alive["lv"] = False
-    $ mask_progress += 20
-
-    "—— 吕文强 · 献祭 ——"
-
-    jump w2_character_select
-
-# ============================================================
-# 以下为原脚本剩余内容
-# ============================================================
-# ============================================================
 label w2_character_select:
     scene black
     with fade
