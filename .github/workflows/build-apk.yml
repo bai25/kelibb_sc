@@ -50,24 +50,18 @@ jobs:
       uses: actions/cache@v4
       with:
         path: $GITHUB_WORKSPACE/android.keystore
-        key: goblin-keystore-v1
+        key: goblin-keystore-v2
 
     - name: Generate keystore (first run only)
       if: steps.cache-key.outputs.cache-hit != 'true'
       run: |
+        # Ren'Py 的 android_build 自动用 alias=android / password=android
+        # 必须匹配，否则 gradle 签名会报错
         keytool -genkey -v -keystore $GITHUB_WORKSPACE/android.keystore \
-          -alias release -keyalg RSA -keysize 2048 -validity 36500 \
-          -storepass "Goblin2026!" -keypass "Goblin2026!" \
+          -alias android -keyalg RSA -keysize 2048 -validity 36500 \
+          -storepass android -keypass android \
           -dname "CN=Kebiaoling, OU=GameDev, O=KebiaolingStudio, L=Beijing, ST=Beijing, C=CN"
-        echo "✅ Fixed keystore generated (will be cached for future builds)"
-
-    - name: Write local.properties for signing
-      run: |
-        echo "key.store=$GITHUB_WORKSPACE/android.keystore" > $GITHUB_WORKSPACE/local.properties
-        echo "key.store.password=Goblin2026!" >> $GITHUB_WORKSPACE/local.properties
-        echo "key.alias=release" >> $GITHUB_WORKSPACE/local.properties
-        echo "key.alias.password=Goblin2026!" >> $GITHUB_WORKSPACE/local.properties
-        echo "✅ local.properties written"
+        echo "✅ Keystore generated (alias=android, cached)"
 
     - name: Point to system Android SDK
       run: |
