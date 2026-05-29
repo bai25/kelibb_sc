@@ -47,6 +47,23 @@ jobs:
       run: |
         xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile 2>&1
 
+    - name: Generate debug keystore
+      run: |
+        # android_build 需要 keystore，在项目根生成临时 debug key
+        keytool -genkey -v -keystore $GITHUB_WORKSPACE/android.keystore \
+          -alias android -keyalg RSA -keysize 2048 -validity 10000 \
+          -storepass android -keypass android \
+          -dname "CN=CI, OU=Build, O=Goblin, L=Beijing, ST=Beijing, C=CN"
+        echo "✅ Debug keystore created"
+        # 同时写入 local.properties（android_build 会读取）
+        cat > $GITHUB_WORKSPACE/local.properties << EOF
+key.store=$GITHUB_WORKSPACE/android.keystore
+key.store.password=android
+key.alias=android
+key.alias.password=android
+EOF
+        echo "✅ local.properties created"
+
     - name: Build APK — official Ren'Py android_build
       run: |
         cd renpy-sdk
