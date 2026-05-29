@@ -19,7 +19,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: renpy-sdk
-        key: renpy-8.3.7-compile-v1
+        key: renpy-8.3.7-compile-v2
 
     - name: Download Ren'Py SDK
       if: steps.cache-renpy.outputs.cache-hit != 'true'
@@ -29,40 +29,33 @@ jobs:
         mv renpy-8.3.7-sdk renpy-sdk
 
     - name: Compile game scripts
-      run: |
-        xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile 2>&1
-        echo "✅ Scripts compiled"
+      run: xvfb-run -a ./renpy-sdk/renpy.sh $GITHUB_WORKSPACE compile 2>&1
 
-    - name: Prepare assets + build files
-      run: |
-        # 1. 准备 Android assets（prepare_rapt.py 生成）
-        python3 $GITHUB_WORKSPACE/.github/workflows/prepare_rapt.py
+    - name: Prepare assets
+      run: python3 $GITHUB_WORKSPACE/.github/workflows/prepare_rapt.py
 
-        # 2. 复制 repo 中的 Gradle 构建配置
-        #    构建目录使用 prototype/
-        mkdir -p renpy-sdk/rapt/prototype/app/src/main
-        cp -r $GITHUB_WORKSPACE/android/build.gradle renpy-sdk/rapt/prototype/
-        cp -r $GITHUB_WORKSPACE/android/settings.gradle renpy-sdk/rapt/prototype/
-        cp -r $GITHUB_WORKSPACE/android/gradle.properties renpy-sdk/rapt/prototype/
-        cp -r $GITHUB_WORKSPACE/android/gradlew renpy-sdk/rapt/prototype/
-        cp -r $GITHUB_WORKSPACE/android/gradlew.bat renpy-sdk/rapt/prototype/ 2>/dev/null || true
-        cp -r $GITHUB_WORKSPACE/android/app/build.gradle renpy-sdk/rapt/prototype/app/
-        # 复制 AndroidManifest.xml
-        mkdir -p renpy-sdk/rapt/prototype/app/src/main/res/values
-        cp -r $GITHUB_WORKSPACE/android/app/src/main/AndroidManifest.xml renpy-sdk/rapt/prototype/app/src/main/
-        # 复制源模块
+    - name: Setup build files
+      run: |
+        # Copy Gradle config from repo to prototype
+        P=renpy-sdk/rapt/prototype
+        cp $GITHUB_WORKSPACE/android/build.gradle $P/
+        cp $GITHUB_WORKSPACE/android/settings.gradle $P/
+        cp $GITHUB_WORKSPACE/android/gradle.properties $P/
+        cp $GITHUB_WORKSPACE/android/gradlew $P/
+        cp $GITHUB_WORKSPACE/android/app/build.gradle $P/app/
+        mkdir -p $P/app/src/main
+        cp $GITHUB_WORKSPACE/android/app/src/main/AndroidManifest.xml $P/app/src/main/
+
         for mod in renpyandroid renpyiap; do
-          cp -r $GITHUB_WORKSPACE/android/$mod/build.gradle renpy-sdk/rapt/prototype/$mod/
-          cp -r $GITHUB_WORKSPACE/android/$mod/src renpy-sdk/rapt/prototype/$mod/ 2>/dev/null || true
+          cp $GITHUB_WORKSPACE/android/$mod/build.gradle $P/$mod/
+          cp -r $GITHUB_WORKSPACE/android/$mod/src $P/$mod/ 2>/dev/null || true
         done
 
-        # 3. 移动 assets 到 prototype（prepare_rapt 写入到 project/）
+        # Move assets from project -> prototype
         if [ -d renpy-sdk/rapt/project/app/src/main/assets ]; then
-          rm -rf renpy-sdk/rapt/prototype/app/src/main/assets
-          cp -r renpy-sdk/rapt/project/app/src/main/assets renpy-sdk/rapt/prototype/app/src/main/assets
+          rm -rf $P/app/src/main/assets
+          cp -r renpy-sdk/rapt/project/app/src/main/assets $P/app/src/main/assets
         fi
-
-        echo "✅ Assets + build files ready"
 
     - name: Generate debug keystore
       run: |
@@ -70,14 +63,6 @@ jobs:
           -alias android -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass android -keypass android \
           -dname "CN=CI, OU=Build, O=Goblin, L=Beijing, ST=Beijing, C=CN"
-        # 写入 local.properties 让 Gradle 能找到 keystore
-        cat > renpy-sdk/rapt/prototype/local.properties << EOF
-key.store=$GITHUB_WORKSPACE/renpy-sdk/rapt/prototype/debug.keystore
-key.store.password=android
-key.alias=android
-key.alias.password=android
-sdk.dir=$ANDROID_HOME
-EOF
 
     - name: Build APK
       run: |
