@@ -7,6 +7,33 @@
 # SE: classbell.mp3（上课铃） footstep_02.mp3（脚步声）
 #     footstep_out_01.mp3 kb_01.mp3 knock_door.mp3 bang_table.mp3
 
+# ---- 存档限制（难度相关）----
+init python:
+    import renpy.store as store
+    
+    def can_save_load():
+        """检查当前难度是否允许存档/读档"""
+        if hasattr(store, 'difficulty') and store.difficulty == "nightmare":
+            return False
+        return True
+    
+    def get_save_sensitive():
+        """用于按钮 sensitive 属性"""
+        return can_save_load()
+    
+    def apply_save_restrictions():
+        """根据当前难度应用存档限制"""
+        if hasattr(store, 'difficulty') and store.difficulty == "nightmare":
+            config.has_autosave = False
+            config.has_quicksave = False
+            renpy.block_rollback()
+        else:
+            config.has_autosave = True
+            config.has_quicksave = True
+    
+    # 加载游戏后重新应用限制
+    config.after_load_callbacks.append(apply_save_restrictions)
+
 # ---- 全局变量 ----
 default w = 1
 default d = 1
@@ -160,6 +187,8 @@ label start_v2:
             $ difficulty = "normal"
         "噩梦（不能存档读档，吞噬人格后有负面效果）":
             $ difficulty = "nightmare"
+
+    $ apply_save_restrictions()
 
     if difficulty == "nightmare":
         "你选择了噩梦难度。"

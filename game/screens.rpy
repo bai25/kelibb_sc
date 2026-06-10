@@ -243,10 +243,25 @@ screen quick_menu():
             textbutton _("历史") action ShowMenu('history')
             textbutton _("快进") action Skip() alternate Skip(fast=True, confirm=True)
             textbutton _("自动") action Preference("auto-forward", "toggle")
-            textbutton _("保存") action ShowMenu('save')
-            textbutton _("快存") action QuickSave()
-            textbutton _("快读") action QuickLoad()
+            textbutton _("保存") action ShowMenu('save') sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
+            textbutton _("快存") action QuickSave() sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
+            textbutton _("快读") action QuickLoad() sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
             textbutton _("设置") action ShowMenu('preferences')
+
+    # 键盘快捷键 - 噩梦难度下禁用存档相关按键
+    key "save" action If(can_save_load(), ShowMenu('save'), NullAction())
+    key "quick_save" action If(can_save_load(), QuickSave(), NullAction())
+    key "quick_load" action If(can_save_load(), QuickLoad(), NullAction())
+
+# 噩梦难度提示浮层
+screen _nightmare_notify():
+    zorder 200
+    frame:
+        xalign 0.5 yalign 0.3
+        xpadding 20 ypadding 12
+        background Solid("#000000CC")
+        text "⚠ 噩梦难度下禁止存档/读档" color "#FF6666" size 22 outlines [(2, "#000000", 0, 0)]
+    timer 1.5 action Hide('_nightmare_notify')
 
 
 ## 此代码确保只要用户没有主动隐藏界面，就会在游戏中显示 quick_menu 屏幕。
@@ -296,9 +311,9 @@ screen navigation():
 
             textbutton _("历史") action ShowMenu("history")
 
-            textbutton _("保存") action ShowMenu("save")
+            textbutton _("保存") action ShowMenu("save") sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
 
-        textbutton _("读取游戏") action ShowMenu("load")
+        textbutton _("读取游戏") action ShowMenu("load") sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
 
         textbutton _("设置") action ShowMenu("preferences")
 
