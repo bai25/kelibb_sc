@@ -13,6 +13,7 @@ android/
 # Logs
 log.txt
 errors.txt
+traceback.txt
 
 # Sensitive
 *.keystore
