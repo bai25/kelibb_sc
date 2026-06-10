@@ -148,8 +148,7 @@ init python:
         if current_char == "xhh":
             cost = max(1, cost - 2)
         stamina -= cost
-        if stamina <= 0:
-            renpy.jump("game_over_exhausted")
+        # 精力耗尽 → 在探索主循环中处理
 
 # ---- HUD ----
 screen game_hud_v2():
@@ -701,11 +700,19 @@ label w1d2_broadcast:
 # ============================================================
 # w1d3 · 空无一人的校园（探索生存）
 # ============================================================
-# 新增变量: 收集道具
+# 道具变量
 default keys_inv = []
 default docs_found = []
 default wxj_alert = 0       # 吴玄吉警戒度 0~100
 default hide_cooldown = 0   # 躲藏冷却
+# 地点进度跟踪
+default classroom_search_done = False     # 教室已搜过
+default classroom_upstairs_done = False   # 二楼已去过
+default canteen_kitchen_done = False      # 后厨已搜
+default canteen_cooler_done = False       # 冷藏室已查
+default admin_floor1_done = False         # 行政楼一楼已搜
+default admin_floor2_done = False         # 行政楼二楼已去过
+default wxj_met_admin = False             # 行政楼见过吴玄吉
 
 label w1d3_empty_school:
 
@@ -722,6 +729,14 @@ label w1d3_empty_school:
     $ keys_inv = []
     $ docs_found = []
     $ wxj_alert = 0
+    # 重置地点进度
+    $ classroom_search_done = False
+    $ classroom_upstairs_done = False
+    $ canteen_kitchen_done = False
+    $ canteen_cooler_done = False
+    $ admin_floor1_done = False
+    $ admin_floor2_done = False
+    $ wxj_met_admin = False
 
     "你睁开眼的时候，觉得哪里不对。"
 
@@ -788,6 +803,11 @@ label w1d3_explore:
 
     $ hide_cooldown = max(0, hide_cooldown - 1)
 
+    # 精力耗尽 → 强制休息
+    if stamina <= 0:
+        "你已经精疲力尽了……"
+        jump w1d3_forced_rest
+
     if wxj_alert >= 100:
         "你听到远处传来脚步声。"
         "吴玄吉就在附近。"
@@ -799,19 +819,32 @@ label w1d3_explore:
     "你站在校园中央。"
     "周围一片死寂。"
 
+    # 各地点的交互状态
+    $ classroom_all_done = classroom_search_done and classroom_upstairs_done
+    $ canteen_all_done = canteen_kitchen_done and canteen_cooler_done
+    $ admin_locked = "admin_key" not in keys_inv
+    $ admin_all_done = admin_floor1_done and admin_floor2_done
+    # 如果行政楼没钥匙且没探索过，不算未完成（去不了）
+    $ admin_accessible_not_done = not admin_locked and not admin_all_done
+    $ all_locations_done = classroom_all_done and canteen_all_done and (admin_all_done or admin_locked)
+
+    if all_locations_done:
+        "所有的地方你都探索过了，没有更多线索了。"
+        "你该休息了……"
+        jump w1d3_forced_rest
+
     menu:
         "去哪里？"
-        "教学楼（寻找线索）":
+        "教学楼" if not classroom_all_done:
             jump w1d3_classroom
-        "行政楼（可能有人）" if "admin_key" not in keys_inv:
-            "行政楼大门紧锁。"
-            "你需要一把钥匙。"
-            jump w1d3_explore
-        "行政楼（已解锁）" if "admin_key" in keys_inv:
+        "行政楼" if admin_accessible_not_done:
             jump w1d3_admin
-        "食堂":
+        "行政楼（锁着）" if admin_locked:
+            "行政楼大门紧锁。你需要找到钥匙。"
+            jump w1d3_explore
+        "食堂" if not canteen_all_done:
             jump w1d3_canteen
-        "宿舍楼（休息恢复精力）":
+        "回宿舍休息（进入下一天）":
             jump w1d3_dorm_rest
         "查看背包":
             jump w1d3_inventory
@@ -827,42 +860,34 @@ label w1d3_inventory:
 
     if not keys_inv and not docs_found:
         "你身上什么也没有。"
-    else:
-        if keys_inv:
-            "你口袋里有钥匙。"
-            $ key_names = {"admin_key": "行政楼钥匙", "library_key": "图书馆钥匙", "locker_key": "储物柜钥匙"}
-            $ key_list = [key_names.get(k, k) for k in keys_inv]
-            python:
-                for k_name in key_list:
-                    renpy.say(None, "  - " + k_name)
-        if docs_found:
-            "你还收集了一些文件。"
-            $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
-            $ doc_list = [doc_names.get(d, d) for d in docs_found]
-            python:
-                for d_name in doc_list:
-                    renpy.say(None, "  - " + d_name)
-        if "doc_newspaper" in docs_found:
-            "（你可以阅读找到的文件）"
-            menu:
-                "阅读旧报纸":
-                    jump w1d3_read_newspaper
-                "关上背包":
-                    jump w1d3_explore
-        if "doc_contract" in docs_found:
-            menu:
-                "阅读校长合同":
-                    jump w1d3_read_contract
-                "关上背包":
-                    jump w1d3_explore
-        if "doc_student_list" in docs_found:
-            menu:
-                "阅读学生名单":
-                    jump w1d3_read_student_list
-                "关上背包":
-                    jump w1d3_explore
+        jump w1d3_explore
 
-    jump w1d3_explore
+    if keys_inv:
+        "你口袋里有钥匙。"
+        $ key_names = {"admin_key": "行政楼钥匙", "library_key": "图书馆钥匙", "locker_key": "储物柜钥匙"}
+        $ key_list = [key_names.get(k, k) for k in keys_inv]
+        python:
+            for k_name in key_list:
+                renpy.say(None, "  - " + k_name)
+
+    if docs_found:
+        "你还收集了一些文件。"
+        $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
+        $ doc_list = [doc_names.get(d, d) for d in docs_found]
+        python:
+            for d_name in doc_list:
+                renpy.say(None, "  - " + d_name)
+
+    # 文件阅读菜单循环
+    menu inv_loop:
+        "阅读旧报纸" if "doc_newspaper" in docs_found:
+            jump w1d3_read_newspaper
+        "阅读校长合同" if "doc_contract" in docs_found:
+            jump w1d3_read_contract
+        "阅读学生名单" if "doc_student_list" in docs_found:
+            jump w1d3_read_student_list
+        "合上背包":
+            jump w1d3_explore
 
 # ============================================================
 # w1d3 · 可阅读文件
@@ -875,7 +900,7 @@ label w1d3_read_newspaper:
     "校方称学生已请假返乡，但家长表示从未收到通知……」"
     "下面还有一行小字手写批注："
     "「同样的地方，同样的事。历史在重复。—老陈」"
-    jump w1d3_inventory
+    jump inv_loop
 
 label w1d3_read_contract:
     "一份校长手写的合同。纸张有被烧过的痕迹。"
@@ -883,7 +908,7 @@ label w1d3_read_contract:
     "作为交换，学校将获得十年繁荣。」"
     "落款处是校长的签名和指印。"
     "旁边还有另一个签名——字迹潦草，但勉强能认出是「吴」字。"
-    jump w1d3_inventory
+    jump inv_loop
 
 label w1d3_read_student_list:
     "一张打印的学生名单。"
@@ -897,7 +922,7 @@ label w1d3_read_student_list:
     "第六位：劳达"
     "名单底部有红色的手写字："
     "「顺序已定，不可更改。」"
-    jump w1d3_inventory
+    jump inv_loop
 
 # ============================================================
 # w1d3 · 教学楼
@@ -914,22 +939,27 @@ label w1d3_classroom:
 
     $ stamina_use(5)
 
-    menu:
-        "搜索教室":
-            $ found = False
+    # 临时菜单循环，直到所有子项完成或选择离开
+    menu classroom_loop:
+        "搜索教室" if not classroom_search_done:
+            $ stamina_use(5)
+            $ found_something = False
             if "locker_key" not in keys_inv:
                 "你在讲台的抽屉里发现了一把钥匙。"
                 $ keys_inv.append("locker_key")
-                $ found = True
+                $ found_something = True
             if "doc_newspaper" not in docs_found:
                 "你在一个课桌的夹层里找到了一份旧报纸剪报。"
                 $ docs_found.append("doc_newspaper")
-                $ found = True
-            if not found:
+                $ found_something = True
+            if not found_something:
                 "教室里已经没有更多线索了。"
+            else:
+                "搜索完毕。你找到了一些有用的东西。"
+            $ classroom_search_done = True
             $ wxj_alert += 10
-            jump w1d3_explore
-        "上二楼看看":
+            jump classroom_loop
+        "上二楼看看" if not classroom_upstairs_done:
             $ stamina_use(5)
             scene classroom_after
             with fade
@@ -937,9 +967,13 @@ label w1d3_classroom:
             if "doc_student_list" not in docs_found:
                 "你在教师办公室的碎纸机旁发现了一张残缺的名单。"
                 $ docs_found.append("doc_student_list")
+            else:
+                "二楼没有什么新的发现了。"
+            $ classroom_upstairs_done = True
             $ wxj_alert += 5
-            jump w1d3_explore
-        "离开这里":
+            jump classroom_loop
+        "离开教学楼":
+            "你走出了教学楼。"
             jump w1d3_explore
 
 # ============================================================
@@ -955,15 +989,16 @@ label w1d3_canteen:
 
     $ stamina_use(3)
 
-    menu:
-        "搜索后厨":
+    menu canteen_loop:
+        "搜索后厨" if not canteen_kitchen_done:
             "你在储物柜里找到了一些干粮和水。"
             "虽然不是正餐，但足够补充体力。"
             "你装了一些在身上。"
             $ stamina = min(stamina_max, stamina + 15)
+            $ canteen_kitchen_done = True
             $ wxj_alert += 5
-            jump w1d3_explore
-        "检查冷藏室":
+            jump canteen_loop
+        "检查冷藏室" if not canteen_cooler_done:
             scene black
             with dissolve
             "你打开冷藏室的门。"
@@ -976,34 +1011,92 @@ label w1d3_canteen:
                     $ docs_found.append("doc_contract")
                 $ wxj_alert += 10
             else:
-                "需要钥匙。"
-            jump w1d3_explore
-        "离开":
+                "储物柜锁着，需要钥匙。"
+            $ canteen_cooler_done = True
+            jump canteen_loop
+        "离开食堂":
+            "你走出了食堂。"
             jump w1d3_explore
 
 # ============================================================
-# w1d3 · 宿舍休息
+# w1d3 · 宿舍休息（进入下一天）
 # ============================================================
 label w1d3_dorm_rest:
+
+    # 如果在被吴玄吉追捕时休息 → 死亡
+    if wxj_alert >= 100:
+        scene dorm_day
+        with fade
+        "你冲进宿舍，锁上门。"
+        "靠在门板上大口喘气——"
+        "\n\n砰！砰！砰！\n\n"
+        "门板剧烈震动。"
+        show wxj normal
+        wxj "开门。"
+        wxj "我知道你在里面。"
+        "你捂住嘴，不敢出声。"
+        show wxj angry
+        "砰！！"
+        "门被撞开了——"
+        scene black
+        with vpunch
+        "\n你没能逃掉。\n"
+        jump w1d3_wxj_caught_death
+
     scene dorm_day
     with fade
 
     "你回到宿舍。"
     "躺在自己的床上，你感觉到片刻的安全。"
-    "你闭上眼，休息了一会儿。"
+    "\n也许……是时候休息了。\n"
 
-    $ stamina = min(stamina_max, stamina + 20)
-    "精力恢复了。"
-    $ wxj_alert = max(0, wxj_alert - 15)
+    "天快黑了。"
+    "你决定结束今天的探索。"
 
-    menu:
-        "继续探索":
-            jump w1d3_explore
-        "再躺一会儿":
-            "你多躺了十分钟。"
-            $ stamina = min(stamina_max, stamina + 5)
-            $ wxj_alert = max(0, wxj_alert - 10)
-            jump w1d3_explore
+    $ stamina = stamina_max
+
+    scene black
+    with fade
+
+    "你闭上眼。"
+    "疲惫像潮水一样涌来。"
+    "\n意识渐渐模糊……\n"
+
+    jump w1d4_transition
+
+# ============================================================
+# w1d3 · 精力耗尽（强制推进到下一天）
+# ============================================================
+label w1d3_forced_rest:
+    scene black
+    with fade
+
+    "你的腿像灌了铅一样沉重。"
+    "视线开始模糊……"
+    "\n你已经没有力气了。\n"
+
+    "你跌跌撞撞地走回宿舍。"
+    "连衣服都没脱就倒在了床上。"
+    "\n意识在一片黑暗中沉了下去……\n"
+
+    jump w1d4_transition
+
+# ============================================================
+# w1d3 · 过渡到 w1d4
+# ============================================================
+label w1d4_transition:
+    scene black
+    with fade
+
+    "\n当阳光再次照在你脸上的时候——\n"
+    "已经是新的一天了。"
+
+    $ stamina = stamina_max
+    $ wxj_alert = max(0, wxj_alert - 30)
+
+    "你活过了第三天。"
+
+    jump w1d4_preview
 
 # ============================================================
 # w1d3 · 行政楼探索
@@ -1026,18 +1119,19 @@ label w1d3_admin:
 
     $ stamina_use(8)
 
-    menu:
-        "搜索一楼办公室":
-            $ found = False
+    menu admin_loop:
+        "搜索一楼办公室" if not admin_floor1_done:
+            $ found_key = False
             if "admin_key" not in keys_inv:
                 "你在保安室的抽屉里找到了行政楼的备用钥匙。"
                 $ keys_inv.append("admin_key")
-                "（你已经有了，这些钥匙是另一间屋子的。）"
-                $ found = True
-            "没有更多有用的东西了。"
+                $ found_key = True
+            if not found_key:
+                "一楼已经没有什么有用的东西了。"
+            $ admin_floor1_done = True
             $ wxj_alert += 15
-            jump w1d3_explore
-        "上二楼":
+            jump admin_loop
+        "上二楼" if not admin_floor2_done:
             scene office_hall
             with fade
             "你走上二楼。"
@@ -1050,8 +1144,9 @@ label w1d3_admin:
                 "敲门":
                     jump w1d3_knock_door
                 "撤退——被发现就完了":
-                    jump w1d3_explore
+                    jump admin_loop
         "离开行政楼":
+            "你走出了行政楼。"
             jump w1d3_explore
 
 # ============================================================
@@ -1097,6 +1192,7 @@ label w1d3_knock_door:
             "他说话的时候一直在笑。"
             "但你看得出来——他在紧张。"
             $ wxj_alert += 15
+            $ admin_floor2_done = True
             jump w1d3_explore
         "质问他——你在校长室干什么":
             lv "你才是，你来校长室干什么？"
@@ -1110,13 +1206,14 @@ label w1d3_knock_door:
             "他关上了门。"
             "你听到里面传来上锁的声音。"
             $ wxj_alert += 25
+            $ admin_floor2_done = True
             jump w1d3_explore
         "撤退":
             "你后退了一步。"
             "现在不是翻旧账的时候。"
             "你说了声打扰了，转身离开。"
             "你感觉他的目光一直钉在你背上。"
-            jump w1d3_explore
+            jump admin_loop
 
 # ============================================================
 # w1d3 · 吴玄吉追逐
@@ -1312,6 +1409,29 @@ label w2_start:
 # ============================================================
 # Game Over
 # ============================================================
+# ============================================================
+# w1d3 · 被吴玄吉抓到（死亡结局）
+# ============================================================
+label w1d3_wxj_caught_death:
+    scene black
+    with fade
+    stop music
+
+    show wxj angry at center
+    with vpunch
+
+    wxj "我说了——别跑。"
+
+    "\n你的世界在重击下变成了一片黑暗。\n"
+
+    scene gameover
+    with fade
+
+    "—— 你没能活过第三天 ——"
+
+    $ renpy.pause(3.0)
+    return
+
 label game_over_exhausted:
     scene gameover
     with fade
