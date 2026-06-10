@@ -5,6 +5,10 @@
 # Save files
 saves/
 game/saves/
+# Android build artifacts
+android/
+.vscode/
+
 
 # Logs
 log.txt
