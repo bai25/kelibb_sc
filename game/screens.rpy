@@ -248,12 +248,7 @@ screen quick_menu():
             textbutton _("快读") action QuickLoad() sensitive can_save_load() hovered If(not can_save_load(), Show(screen='_nightmare_notify'), NullAction())
             textbutton _("设置") action ShowMenu('preferences')
 
-    # 键盘快捷键 - 噩梦难度下禁用存档相关按键
-    key "save" action If(can_save_load(), ShowMenu('save'), NullAction())
-    key "K_F5" action If(can_save_load(), QuickSave(), NullAction())
-    key "K_F6" action If(can_save_load(), QuickLoad(), NullAction())
-    key "K_F7" action If(can_save_load(), ShowMenu('load'), NullAction())
-    key "K_F9" action If(can_save_load(), QuickSave(), NullAction())
+    # 键盘快捷键已禁用
 
 # 噩梦难度提示浮层
 screen _nightmare_notify():
