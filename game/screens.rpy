@@ -250,8 +250,10 @@ screen quick_menu():
 
     # 键盘快捷键 - 噩梦难度下禁用存档相关按键
     key "save" action If(can_save_load(), ShowMenu('save'), NullAction())
-    key "quick_save" action If(can_save_load(), QuickSave(), NullAction())
-    key "quick_load" action If(can_save_load(), QuickLoad(), NullAction())
+    key "K_F5" action If(can_save_load(), QuickSave(), NullAction())
+    key "K_F6" action If(can_save_load(), QuickLoad(), NullAction())
+    key "K_F7" action If(can_save_load(), ShowMenu('load'), NullAction())
+    key "K_F9" action If(can_save_load(), QuickSave(), NullAction())
 
 # 噩梦难度提示浮层
 screen _nightmare_notify():
