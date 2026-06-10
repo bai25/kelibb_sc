@@ -282,6 +282,121 @@ style quick_button_text:
     properties gui.text_properties("quick_button")
 
 
+# ============================================================
+# 背包 UI 屏幕
+# ============================================================
+screen inventory_screen():
+    zorder 150
+    modal True
+
+    style_prefix "inventory"
+
+    frame:
+        xalign 0.5 yalign 0.5
+        xsize 600 ysize 480
+        background Solid("#1a1a2eEE")
+
+        vbox:
+            spacing 12
+            xfill True
+            yfill True
+
+            # 标题栏
+            frame:
+                ysize 50
+                background Solid("#16213e")
+                hbox:
+                    xalign 0.5 yalign 0.5
+                    spacing 8
+                    text "🎒" size 28
+                    text "背包" size 26 bold True color "#E0E0E0"
+
+            # 物品列表区域
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                ysize 320
+
+                vbox:
+                    spacing 8
+                    xfill True
+
+                    # 钥匙区
+                    $ key_names = {"admin_key": "行政楼钥匙", "locker_key": "储物柜钥匙", "library_key": "图书馆钥匙"}
+                    $ key_list = [k for k in keys_inv if k in key_names]
+
+                    if key_list:
+                        frame:
+                            background Solid("#1a1a3e88")
+                            padding (12, 8)
+                            vbox:
+                                spacing 4
+                                text "🔑 钥匙" size 16 bold True color "#FFD700"
+                                for k_id in key_list:
+                                    text "    • [key_names[k_id]]" size 14 color "#C0C0C0"
+                    else:
+                        frame:
+                            background Solid("#1a1a3e44")
+                            padding (12, 8)
+                            text "🔑 没有钥匙" size 14 color "#666666"
+
+                    # 分隔线
+                    null height 4
+                    frame:
+                        xsize 560 xalign 0.5
+                        ysize 1
+                        background Solid("#444466")
+
+                    # 文件区
+                    $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
+                    $ doc_list = [d for d in docs_found if d in doc_names]
+
+                    if doc_list:
+                        frame:
+                            background Solid("#1a1a3e88")
+                            padding (12, 8)
+                            vbox:
+                                spacing 4
+                                text "📄 文件" size 16 bold True color "#87CEEB"
+                                for d_id in doc_list:
+                                    textbutton "📄 [doc_names[d_id]]" action [Hide("inventory_screen"), Jump("inventory_read_" + d_id)] style "inventory_item_button"
+                    else:
+                        frame:
+                            background Solid("#1a1a3e44")
+                            padding (12, 8)
+                            text "📄 没有文件" size 14 color "#666666"
+
+            # 底部关闭按钮
+            frame:
+                ysize 50
+                background Solid("#16213e")
+                textbutton "✕ 合上背包" xalign 0.5 yalign 0.5 action [Hide("inventory_screen"), Jump("w1d3_explore")] style "inventory_close_button"
+
+## 背包按钮样式
+style inventory_item_button:
+    hover_background Solid("#2a2a5eaa")
+    idle_background Solid("#00000000")
+    xminimum 520
+    ypadding 6
+    xpadding 10
+
+style inventory_item_button_text:
+    color "#C0C0C0"
+    hover_color "#FFFFFF"
+    size 14
+
+style inventory_close_button:
+    hover_background Solid("#5a1a1a88")
+    idle_background Solid("#00000000")
+    xminimum 560
+    ypadding 8
+
+style inventory_close_button_text:
+    color "#FF6666"
+    hover_color "#FF9999"
+    size 16 bold True
+
+
 ################################################################################
 ## 标题和游戏菜单屏幕
 ################################################################################

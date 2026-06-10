@@ -853,46 +853,17 @@ label w1d3_explore:
 # w1d3 · 背包
 # ============================================================
 label w1d3_inventory:
+    $ renpy.block_rollback()
+    call screen inventory_screen
+    # 调用屏幕后由 Jump action 控制流程，不会走到这里
+    jump w1d3_explore
+
+# ============================================================
+# w1d3 · 可阅读文件（由背包 UI 按钮跳转）
+# ============================================================
+label inventory_read_doc_newspaper:
     scene black
     with dissolve
-
-    "你检查了一下随身物品。"
-
-    if not keys_inv and not docs_found:
-        "你身上什么也没有。"
-        jump w1d3_explore
-
-    if keys_inv:
-        "你口袋里有钥匙。"
-        $ key_names = {"admin_key": "行政楼钥匙", "library_key": "图书馆钥匙", "locker_key": "储物柜钥匙"}
-        $ key_list = [key_names.get(k, k) for k in keys_inv]
-        python:
-            for k_name in key_list:
-                renpy.say(None, "  - " + k_name)
-
-    if docs_found:
-        "你还收集了一些文件。"
-        $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
-        $ doc_list = [doc_names.get(d, d) for d in docs_found]
-        python:
-            for d_name in doc_list:
-                renpy.say(None, "  - " + d_name)
-
-    # 文件阅读菜单循环
-    menu inv_loop:
-        "阅读旧报纸" if "doc_newspaper" in docs_found:
-            jump w1d3_read_newspaper
-        "阅读校长合同" if "doc_contract" in docs_found:
-            jump w1d3_read_contract
-        "阅读学生名单" if "doc_student_list" in docs_found:
-            jump w1d3_read_student_list
-        "合上背包":
-            jump w1d3_explore
-
-# ============================================================
-# w1d3 · 可阅读文件
-# ============================================================
-label w1d3_read_newspaper:
     "一份泛黄的报纸剪报。"
     "日期是十五年前。"
     "标题：《城东中学集体失踪案告破——警方不予立案》"
@@ -900,17 +871,21 @@ label w1d3_read_newspaper:
     "校方称学生已请假返乡，但家长表示从未收到通知……」"
     "下面还有一行小字手写批注："
     "「同样的地方，同样的事。历史在重复。—老陈」"
-    jump inv_loop
+    jump w1d3_inventory
 
-label w1d3_read_contract:
+label inventory_read_doc_contract:
+    scene black
+    with dissolve
     "一份校长手写的合同。纸张有被烧过的痕迹。"
     "「本人自愿献出六名学生的生命力，以换取[涂黑]的力量。"
     "作为交换，学校将获得十年繁荣。」"
     "落款处是校长的签名和指印。"
     "旁边还有另一个签名——字迹潦草，但勉强能认出是「吴」字。"
-    jump inv_loop
+    jump w1d3_inventory
 
-label w1d3_read_student_list:
+label inventory_read_doc_student_list:
+    scene black
+    with dissolve
     "一张打印的学生名单。"
     "上面列着六个名字，旁边标注了编号。"
     "你的名字——吕文强——排在第三位。"
@@ -922,7 +897,7 @@ label w1d3_read_student_list:
     "第六位：劳达"
     "名单底部有红色的手写字："
     "「顺序已定，不可更改。」"
-    jump inv_loop
+    jump w1d3_inventory
 
 # ============================================================
 # w1d3 · 教学楼
