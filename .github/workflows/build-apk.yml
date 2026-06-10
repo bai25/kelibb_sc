@@ -1,5 +1,14 @@
 name: Android CI
 on:
+  push:
+    branches: ["main"]
+    paths:
+      - "game/**"
+      - "android.json"
+      - "android-presplash.jpg"
+      - "android-icon_background.png"
+      - "android-icon_foreground.png"
+      - ".github/workflows/build-apk.yml"
   workflow_dispatch:
 
 jobs:
