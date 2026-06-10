@@ -185,7 +185,7 @@ label start_v2:
             $ difficulty = "easy"
         "困难（吞噬人格后有负面效果，允许存档读档）":
             $ difficulty = "normal"
-        "噩梦（不能存档读档，吞噬人格后有负面效果）":
+        "地狱（不能存档读档，吞噬人格后有负面效果）":
             $ difficulty = "nightmare"
 
     $ apply_save_restrictions()
@@ -193,7 +193,7 @@ label start_v2:
     if difficulty == "nightmare":
         "你选择了噩梦难度。"
         "无法存档，无法读档。"
-        "每一个选择都关乎生死。"
+        "地狱自虐，一口气玩到底。"
     elif difficulty == "normal":
         "你选择了困难模式。"
         "被吞噬的人格会带来负面效果。"
