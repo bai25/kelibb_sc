@@ -1,6 +1,8 @@
 # Ren'Py compiled files
 *.rpyc
 *.rpymc
+# Draft files
+drafts/
 
 # Save files
 saves/
