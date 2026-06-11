@@ -109,10 +109,10 @@ image classroom_day = "jiaoshi_1.jpg"
 image classroom_after = "jiaoshi_2.jpg"
 image classroom_eve = "jiaoshi_3.jpg"
 image classroom_night = "jiaoshi_4.jpg"
-image dorm_day = "dorm_day.webp"
-image dorm_dusk = "dorm_dusk.webp"
-image dorm_night = "dorm_night.webp"
-image dorm_moon = "dorm_moon.webp"
+image dorm_day = Transform("dorm_day.png", size=(1280, 720), fit="cover")
+image dorm_dusk = Transform("dorm_dusk.png", size=(1280, 720), fit="cover")
+image dorm_night = Transform("dorm_night.png", size=(1280, 720), fit="cover")
+image dorm_moon = Transform("dorm_moon.png", size=(1280, 720), fit="cover")
 image corridor_day = "corridor_day.webp"
 image corridor_dusk = "corridor_dusk.webp"
 image corridor_night = "corridor_night.webp"
