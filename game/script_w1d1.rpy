@@ -161,15 +161,11 @@ label w1d1_morning:
 
     "旁边那桌的对话飘进他的耳朵——"
 
-    show classmate_a:
-        xalign 0.7 yalign 1.0
-    with dissolve
+    
 
     classmate_a "哎，你听说了吗？"
 
-    show classmate_b:
-        xalign 0.9 yalign 1.0
-    with dissolve
+    
 
     classmate_b "什么？"
 
@@ -251,14 +247,10 @@ label w1d1_morning:
     "房间里比平时热闹得多——"
     "全在讨论春游。"
 
-    show roommate_1:
-        xalign 0.3 yalign 1.0
-    with dissolve
+    
     roommate_1 "我听说这次要去郊区那个森林公园！"
 
-    show roommate_2:
-        xalign 0.7 yalign 1.0
-    with dissolve
+    
     roommate_2 "不可能吧，那个地方单程就要两个半小时——"
 
     roommate_1 "所以才要选学生代表嘛！肯定要提前踩点、安排食宿什么的。"
