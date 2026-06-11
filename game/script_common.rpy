@@ -151,10 +151,10 @@ image xhh normal = "xhh_normal.webp"
 image xhh happy = "xhh_happy.webp"
 image xhh angry = "xhh_angry.webp"
 image xhh fright = "xhh_fright.webp"
-image yjc normal = "yjc_normal.png"
-image yjc happy = "yjc_happy.png"
-image yjc angry = "yjc_angry.png"
-image yjc fright = "yjc_fright.png"
+image yjc normal = "yjc_normal.webp"
+image yjc happy = "yjc_happy.webp"
+image yjc angry = "yjc_angry.webp"
+image yjc fright = "yjc_fright.webp"
 image wjy normal = "wjy_normal.webp"
 image wjy happy = "wjy_happy.webp"
 image wjy angry = "wjy_angry.webp"
@@ -175,16 +175,16 @@ image hallway = "corridor_day.webp"
 
 # ---- 精灵缩放（立绘太大 → 缩小到合适尺寸）----
 transform sprite_stand:
-    zoom 0.5
+    zoom 0.85
 
 transform sprite_left:
-    xalign 0.25 yalign 1.0 zoom 0.5
+    xalign 0.25 yalign 1.0 zoom 0.85
 
 transform sprite_center:
-    xalign 0.5 yalign 1.0 zoom 0.5
+    xalign 0.5 yalign 1.0 zoom 0.85
 
 transform sprite_right:
-    xalign 0.75 yalign 1.0 zoom 0.5
+    xalign 0.75 yalign 1.0 zoom 0.85
 
 # ---- 工具函数 ----
 init python:
