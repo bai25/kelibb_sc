@@ -49,3 +49,4 @@ generate_*.py
 # Old backup files
 *.old
 *.bak
+old/
