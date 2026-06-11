@@ -57,7 +57,7 @@ label w1d1_morning:
     "清晨的阳光穿过窗帘的缝隙，在宿舍地面上投下一道狭长的光带。"
     "光带正好落在吕文强的脸上。"
 
-    show lv normal at center
+    show lv normal at sprite_center
     with dissolve
 
     lv "……嗯。"
@@ -208,7 +208,7 @@ label w1d1_morning:
 
     "欢呼声像炸雷一样在教室里爆开。"
 
-    show lv happy
+    show lv happy at sprite_center
     "吕文强也忍不住鼓起掌来。"
     "春游。确实很久没有过了。"
     "自从上了高中，所有校外活动都被砍掉了。"
@@ -285,7 +285,7 @@ label w1d1_morning:
     "也许是你多心了。"
     "也许一切都很正常。"
 
-    show lv normal at center
+    show lv normal at sprite_center
     "你合上书，闭上眼。"
     "明天……再说吧。"
 

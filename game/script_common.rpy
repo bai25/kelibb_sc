@@ -127,13 +127,13 @@ image canteen_day = "canteen_day.webp"
 image canteen_dusk = "canteen_dusk.webp"
 image canteen_light = "canteen_light.webp"
 
-# ---- 新增场景 ----
-image playground = "playground.webp"
-image office_hall = "office_hall.webp"
-image office_principal = "office_principal.webp"
-image school_gate_closeup = "school_gate_closeup.webp"
-image broadcast_room = "broadcast_room.webp"
-image security_room = "security_room.webp"
+# ---- 新增场景（1:1 图片→拉伸填满16:9）----
+image playground = Transform("playground.webp", size=(1280, 720), fit="cover")
+image office_hall = Transform("office_hall.webp", size=(1280, 720), fit="cover")
+image office_principal = Transform("office_principal.webp", size=(1280, 720), fit="cover")
+image school_gate_closeup = Transform("school_gate_closeup.webp", size=(1280, 720), fit="cover")
+image broadcast_room = Transform("broadcast_room.webp", size=(1280, 720), fit="cover")
+image security_room = Transform("security_room.webp", size=(1280, 720), fit="cover")
 
 # ---- 立绘：吕文强（原林晓立绘）----
 image lv normal = "lx/lx_normal.webp"
@@ -172,6 +172,19 @@ image wxj normal = "blackman.webp"
 image wxj angry = "blackman.webp"
 image wxj happy = "blackman.webp"
 image hallway = "corridor_day.webp"
+
+# ---- 精灵缩放（立绘太大 → 缩小到合适尺寸）----
+transform sprite_stand:
+    zoom 0.5
+
+transform sprite_left:
+    xalign 0.25 yalign 1.0 zoom 0.5
+
+transform sprite_center:
+    xalign 0.5 yalign 1.0 zoom 0.5
+
+transform sprite_right:
+    xalign 0.75 yalign 1.0 zoom 0.5
 
 # ---- 工具函数 ----
 init python:

@@ -40,7 +40,7 @@ label w1d3_empty_school:
     "不刺眼。偏白。"
     "像隔了一层薄薄的雾。"
 
-    show lv normal at center
+    show lv normal at sprite_center
     with dissolve
 
     lv "……嗯。"
@@ -76,7 +76,7 @@ label w1d3_empty_school:
     "风从窗缝里钻进来。"
     "带着一股奇怪的焦味——像是什么东西在远处被烧过。"
 
-    show lv fright
+    show lv fright at sprite_center
     "吕文强打了个寒颤。"
 
     lv "……这不对。"
@@ -424,7 +424,7 @@ label w1d3_classroom_upstairs:
     "锁链上挂着一张小卡片——"
     "上面印着一个红色的面具图案。"
 
-    show lv fright
+    show lv fright at sprite_center
     with dissolve
 
     "你不记得在哪里见过——但那个红色的面具，让你心里咯噔了一下。"
@@ -461,7 +461,7 @@ label w1d3_classroom_bulletin:
     "而是一个你从未见过的名字。"
     "「校务管理委员会」"
 
-    show lv normal
+    show lv normal at sprite_center
     with dissolve
 
     lv "(校务管理委员会……学校什么时候有这个部门了？)"
@@ -539,7 +539,7 @@ label w1d3_canteen_kitchen:
 
     "「别吃食堂的肉。」"
 
-    show lv fright
+    show lv fright at sprite_center
     "你愣住了。"
     "纸条上没有署名。纸张已经发皱——像是在口袋里揣了很久。"
 
@@ -606,7 +606,7 @@ label w1d3_canteen_dining:
     "所有餐盘里的筷子，都放在同一个方向。"
     "统一指向东边。"
 
-    show lv normal
+    show lv normal at sprite_center
     with dissolve
 
     $ has_noticed = True
@@ -664,7 +664,7 @@ label w1d3_playground_flagpole:
     "下面还有一个日期——"
     "十五年前的今天。"
 
-    show lv fright
+    show lv fright at sprite_center
     with dissolve
 
     lv "……十五年前？"
@@ -710,7 +710,7 @@ label w1d3_playground_stands:
     "那枚吊坠的形状——"
     "和你之前在行政楼见过的面具图案，一模一样。"
 
-    show lv normal
+    show lv normal at sprite_center
     with dissolve
 
     lv "……这是。"
@@ -750,7 +750,7 @@ label w1d3_playground_lap:
     "烟嘴上的滤纸还很白。"
     "是今天的——或者昨晚的。"
 
-    show lv normal
+    show lv normal at sprite_center
     with dissolve
 
     lv "学校里还有人。"
@@ -800,7 +800,7 @@ label w1d3_broadcast_room:
     "「Day 3：所有学生回到教室。像什么都没发生过。」"
     "「效果超出预期。面具大人的力量……是真的。」"
 
-    show lv fright
+    show lv fright at sprite_center
     with dissolve
 
     "你的血液一瞬间凝固了。"
@@ -976,7 +976,7 @@ label w1d3_security_desk:
 
     "「通往底下」"
 
-    show lv normal
+    show lv normal at sprite_center
     with dissolve
 
     lv "……底下？"
@@ -1069,7 +1069,7 @@ label w1d3_knock_door:
     "脚步声。"
     "门开了一条缝。"
 
-    show wxj normal at center
+    show wxj normal at sprite_center
     with dissolve
 
     "一张肥胖的脸从门缝里探出来。"
@@ -1080,13 +1080,13 @@ label w1d3_knock_door:
 
     wxj "……是你啊。"
 
-    show lv normal
+    show lv normal at sprite_center
     lv "吴玄吉……你怎么在这？"
 
     wxj "这话该我问你吧，吕文强。"
     wxj "你来行政楼干什么？"
 
-    show lv fright
+    show lv fright at sprite_center
     menu:
         "问他知不知道发生了什么":
             lv "学校里的人呢？你知道怎么回事吗？"
@@ -1125,7 +1125,7 @@ label w1d3_wxj_chase:
 
     "脚步声越来越近。"
 
-    show wxj normal at center
+    show wxj normal at sprite_center
     with vpunch
 
     wxj "吕文强——"
@@ -1197,7 +1197,7 @@ label w1d3_caught:
 
     "你没能逃掉。"
 
-    show wxj normal at center
+    show wxj normal at sprite_center
     with dissolve
 
     wxj "别跑了。"

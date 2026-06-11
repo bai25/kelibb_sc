@@ -85,8 +85,8 @@ label w1d2_morning:
 
     "你推门进来的那一刻，五道目光同时落在你身上。"
 
-    # --- 张闻晦 ---
-    show zwh sneaky at left
+    # --- 张闻晦（逐个出场·用完消去）---
+    show zwh sneaky at sprite_center
     with dissolve
 
     zwh "哦——第六个来了。"
@@ -99,9 +99,10 @@ label w1d2_morning:
     "但那一眼已经让你记住了他——"
     "。。。。。。"
 
+    hide zwh with dissolve
+
     # --- 严笳谌 ---
-    show yjc normal:
-        xalign 0.35 yalign 1.0
+    show yjc normal at sprite_center
     with dissolve
 
     yjc "人到齐了。校长呢？"
@@ -116,9 +117,10 @@ label w1d2_morning:
     yjc "校长让我们在这里等。"
     yjc "但已经过了约定时间五分钟了。"
 
+    hide yjc with dissolve
+
     # --- 徐鸿昊 ---
-    show xhh happy:
-        xalign 0.55 yalign 1.0
+    show xhh happy at sprite_center
     with dissolve
 
     xhh "别紧张嘛，说不定校长被临时叫走了。"
@@ -141,9 +143,10 @@ label w1d2_morning:
             xhh "我？六班的。"
             xhh "不过这不重要——重要的是，咱们六个人被挑出来，肯定有原因。"
 
+    hide xhh with dissolve
+
     # --- 吴机岩 ---
-    show wjy normal:
-        xalign 0.75 yalign 1.0
+    show wjy normal at sprite_center
     with dissolve
 
     "一个靠在书架旁的男生一直没说话。"
@@ -159,9 +162,10 @@ label w1d2_morning:
     "节奏均匀。一下。两下。三下。"
     "像是在数时间。"
 
+    hide wjy with dissolve
+
     # --- 劳达 ---
-    show ld normal:
-        xalign 0.95 yalign 1.0
+    show ld normal at sprite_center
     with dissolve
 
     "角落里还有一个人。"
@@ -183,7 +187,9 @@ label w1d2_morning:
     "他不是冷漠。"
     "他是在观察。"
 
-    # ========== 等待中的张力（丰富版）==========
+    hide ld with dissolve
+
+    # ========== 等待中的张力（丰富版·逐个对话）==========
     scene office_principal
     with fade
 
@@ -192,25 +198,23 @@ label w1d2_morning:
 
     "徐鸿昊开始不耐烦了。"
 
-    show xhh angry:
-        xalign 0.4 yalign 1.0
+    show xhh angry at sprite_center
     with dissolve
 
     xhh "十五分钟了。"
     xhh "校长还没来。"
 
-    show yjc normal:
-        xalign 0.2 yalign 1.0
+    hide xhh with dissolve
+    show yjc normal at sprite_center
     with dissolve
 
     yjc "也许他临时有急事。"
 
-    xhh "那至少派个人来说一声吧？"
+    hide yjc with dissolve
 
     "张闻晦从窗边转过身来。"
 
-    show zwh sneaky:
-        xalign 0.6 yalign 1.0
+    show zwh sneaky at sprite_center
     with dissolve
 
     zwh "你们有没有想过——"
@@ -218,7 +222,15 @@ label w1d2_morning:
 
     "房间里安静了一瞬。"
 
+    hide zwh with dissolve
+    show yjc normal at sprite_center
+    with dissolve
+
     yjc "你什么意思？"
+
+    hide yjc with dissolve
+    show zwh sneaky at sprite_center
+    with dissolve
 
     zwh "我只是说一个可能性。"
     zwh "你们不觉得奇怪吗——六个学生被叫到校长办公室，"
@@ -227,16 +239,23 @@ label w1d2_morning:
     "他停顿了一下。"
     zwh "——一个局？"
 
+    hide zwh with dissolve
+
     "吴机岩终于开口了。"
 
-    show wjy normal:
-        xalign 0.8 yalign 1.0
+    show wjy normal at sprite_center
     with dissolve
 
     wjy "什么意思？"
 
+    hide wjy with dissolve
+    show zwh sneaky at sprite_center
+    with dissolve
+
     zwh "我不知道。"
     zwh "但我们可以试试——看看这扇门外到底有什么。"
+
+    hide zwh with dissolve
 
     "所有人的目光都转向你。"
 
@@ -265,7 +284,7 @@ label w1d2_morning:
             show zwh angry
             zwh "……你说什么？"
             "气氛一下子紧张起来。"
-            show yjc normal at center
+            show yjc normal at sprite_center
             yjc "够了。"
             "严笳谌的声音不大，但带着不容置疑的语气。"
             yjc "吵没有用。"
@@ -327,7 +346,7 @@ label w1d2_look_outside:
     "空荡荡的。"
     "像一条永远走不到尽头的、静止的通道。"
 
-    show lv fright
+    show lv fright at sprite_center
     "你的心跳开始加速。"
 
     menu:
@@ -352,7 +371,7 @@ label w1d2_try_leave:
     "校门近在咫尺。"
     "你几乎能看到外面的马路——"
 
-    show blackman_default at center
+    show blackman_default at sprite_center
     with vpunch
 
     blackman "站住。"
@@ -362,7 +381,7 @@ label w1d2_try_leave:
 
     blackman "学生不允许离开校园。"
 
-    show lv angry
+    show lv angry at sprite_center
     "你盯着他们。"
 
     menu:
@@ -462,7 +481,7 @@ label w1d2_get_phone:
     "联系人都在。"
     "但没有一格信号。"
 
-    show lv fright
+    show lv fright at sprite_center
     lv "……开什么玩笑。"
 
     "你把手机放下。"
@@ -549,7 +568,7 @@ label w1d2_broadcast:
 
     "但一切……不太对。"
 
-    show lv normal at center
+    show lv normal at sprite_center
     with dissolve
 
     "同桌坐下来的时候，动作比平时慢了一拍。"
@@ -602,7 +621,7 @@ label w1d2_broadcast:
 
     "你猛地站起来——"
 
-    show lv fright
+    show lv fright at sprite_center
 
     "什么都没有。"
 
