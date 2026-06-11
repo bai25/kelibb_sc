@@ -348,7 +348,7 @@ screen inventory_screen():
                         background Solid("#444466")
 
                     # 文件区
-                    $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记"}
+                    $ doc_names = {"doc_newspaper": "旧报纸剪报", "doc_contract": "校长手写合同", "doc_student_list": "学生名单", "doc_diary": "残缺的日记", "photo_half": "半张毕业照", "old_photo": "十五年前的六人照片", "broadcast_log": "广播站工作日志", "security_archive": "2011特殊事件档案", "school_map": "学校平面图"}
                     $ doc_list = [d for d in docs_found if d in doc_names]
 
                     if doc_list:
