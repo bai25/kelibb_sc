@@ -31,6 +31,21 @@ label w1d3_empty_school:
     $ playground_done = False
     $ broadcast_room_done = False
     $ security_room_done = False
+    # 地图新增地点
+    $ lab_done = False           # 实验楼
+    $ hall_done = False          # 门厅/集合广场
+    $ stage_done = False         # 主席台
+    $ garden_done = False        # 花园
+    $ flowerbed_done = False     # 花坛
+    $ front_parking_done = False # 前停车场（男生宿舍前）
+    $ back_parking_done = False  # 后停车场（后花园后）
+    $ basketball_done = False    # 篮球场
+    $ assembly_square_done = False # 集合广场
+    $ back_gate_done = False     # 后门
+    $ back_garden_done = False   # 后花园
+    $ residential_done = False   # 居民楼
+    $ boys_dorm_done = False     # 男生宿舍
+    $ girls_dorm_done = False    # 女生宿舍
 
     # ---- 清晨起床（丰富版）----
     scene dorm_day
@@ -172,34 +187,144 @@ label w1d3_explore:
     $ admin_locked = "admin_key" not in keys_inv
     $ admin_all_done = admin_floor1_done and admin_floor2_done
     $ admin_accessible_not_done = not admin_locked and not admin_all_done
-    $ new_locations_done = playground_done and broadcast_room_done and security_room_done
-    $ all_locations_done = classroom_all_done and canteen_all_done and (admin_all_done or admin_locked) and new_locations_done
+    $ new_all_done = playground_done and broadcast_room_done and security_room_done and lab_done and front_parking_done
+    $ all_locations_done = classroom_all_done and canteen_all_done and (admin_all_done or admin_locked) and new_all_done and boys_dorm_done and girls_dorm_done
 
     if all_locations_done:
         "你把能去的地方都走了一遍。再待下去也不会有什么新发现了。"
         jump w1d3_dorm_rest
 
+    # ---- 区域选择菜单 ----
     menu:
         "去哪儿？"
-        "教学楼" if not classroom_all_done:
-            jump w1d3_classroom
-        "行政楼" if admin_accessible_not_done:
-            jump w1d3_admin
-        "行政楼（锁着）" if admin_locked:
-            "行政楼大门紧锁。你需要找到钥匙。"
-            jump w1d3_explore
-        "食堂" if not canteen_all_done:
-            jump w1d3_canteen
-        "操场" if not playground_done:
-            jump w1d3_playground
-        "广播室" if not broadcast_room_done:
-            jump w1d3_broadcast_room
-        "保安室" if not security_room_done:
-            jump w1d3_security_room
+
+        "🏛 教学楼区" if not (classroom_all_done and admin_all_done and lab_done and broadcast_room_done):
+            jump w1d3_zone_academic
+
+        "🏠 生活区" if not (canteen_all_done and boys_dorm_done and girls_dorm_done and residential_done):
+            jump w1d3_zone_living
+
+        "⚽ 运动区" if not (playground_done and basketball_done):
+            jump w1d3_zone_sports
+
+        "🏁 前院" if not (assembly_square_done and stage_done and security_room_done and front_parking_done):
+            jump w1d3_zone_front
+
+        "🌳 后庭" if not (back_gate_done and back_garden_done and flowerbed_done and back_parking_done):
+            jump w1d3_zone_back
+
         "查看背包":
             jump w1d3_inventory
-        "回宿舍休息（推进到下一天）":
+
+        "🛏 回宿舍休息（推进到下一天）":
             jump w1d3_dorm_rest
+
+# ============================================================
+# w1d3 · 区域选择：教学楼区
+# ============================================================
+label w1d3_zone_academic:
+    menu:
+        "教学楼区 — 去哪栋楼？"
+
+        "📚 教学楼" if not classroom_all_done:
+            jump w1d3_classroom
+
+        "🏢 行政楼" if admin_accessible_not_done:
+            jump w1d3_admin
+        "🏢 行政楼（🔒 锁着）" if admin_locked:
+            "行政楼大门紧锁。你需要找到钥匙。"
+            jump w1d3_explore
+
+        "🔬 实验楼" if not lab_done:
+            jump w1d3_lab
+
+        "📻 广播室" if not broadcast_room_done:
+            jump w1d3_broadcast_room
+
+        "🔙 回上一层":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 区域选择：生活区
+# ============================================================
+label w1d3_zone_living:
+    menu:
+        "生活区 — 去哪边？"
+
+        "🍜 食堂" if not canteen_all_done:
+            jump w1d3_canteen
+
+        "🚹 男生宿舍" if not boys_dorm_done:
+            jump w1d3_boys_dorm
+
+        "🚺 女生宿舍" if not girls_dorm_done:
+            jump w1d3_girls_dorm
+
+        "🏘 居民楼" if not residential_done:
+            jump w1d3_residential
+
+        "🔙 回上一层":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 区域选择：运动区
+# ============================================================
+label w1d3_zone_sports:
+    menu:
+        "运动区 — 去哪儿？"
+
+        "⚽ 大操场" if not playground_done:
+            jump w1d3_playground
+
+        "🏀 篮球场" if not basketball_done:
+            jump w1d3_basketball
+
+        "🔙 回上一层":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 区域选择：前院
+# ============================================================
+label w1d3_zone_front:
+    menu:
+        "前院 — 去哪边？"
+
+        "🏁 集合广场" if not assembly_square_done:
+            jump w1d3_assembly_square
+
+        "🎤 主席台" if not stage_done:
+            jump w1d3_stage
+
+        "🚔 保安室" if not security_room_done:
+            jump w1d3_security_room
+
+        "🚗 前停车场" if not front_parking_done:
+            jump w1d3_front_parking
+
+        "🔙 回上一层":
+            jump w1d3_explore
+
+# ============================================================
+# w1d3 · 区域选择：后庭
+# ============================================================
+label w1d3_zone_back:
+    menu:
+        "后庭 — 去哪边？"
+
+        "🚪 后门" if not back_gate_done:
+            jump w1d3_back_gate
+
+        "🌸 后花园" if not back_garden_done:
+            jump w1d3_back_garden
+
+        "🚗 后停车场" if not back_parking_done:
+            jump w1d3_back_parking
+
+        "🌷 花坛" if not flowerbed_done:
+            jump w1d3_flowerbed
+
+        "🔙 回上一层":
+            jump w1d3_explore
 
 # ============================================================
 # w1d3 · 随机探索事件
@@ -1236,6 +1361,114 @@ label w1d3_caught:
             $ wxj_alert = 0
 
             jump w1d4_preview
+
+# ============================================================
+# w1d3 · 新地图地点存根（后续填充）
+# ============================================================
+
+label w1d3_lab:
+    "实验楼的大门虚掩着。"
+    "里面传来化学试剂的气味——混合着某种说不清的甜腻味道。"
+    "你犹豫了一下，没有深入探索。"
+    $ lab_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_boys_dorm:
+    "男生宿舍静悄悄的。"
+    "走廊里散落着几双拖鞋和一件校服外套——像是住在这里的人只是暂时离开。"
+    "但你心里清楚，他们已经不会回来了。"
+    $ boys_dorm_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_girls_dorm:
+    "女生宿舍楼下的大门虚掩着。"
+    "里面很安静。安静得不太对劲。"
+    "你没有上去——至少现在不是时候。"
+    $ girls_dorm_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_residential:
+    "居民楼位于校园边缘，靠近后门。"
+    "大多数窗户都关着。有一扇窗拉着窗帘——但窗帘在微微晃动。"
+    "有人在看着你吗？"
+    "你快步离开了。"
+    $ residential_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_basketball:
+    "篮球场上空无一人。"
+    "地上有一个篮球——气很足，像是刚被人遗落在这里。"
+    "你环顾四周。没有人。"
+    "这个发现让你心里更不安了。"
+    $ basketball_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_assembly_square:
+    "集合广场空荡荡的。"
+    "旗杆上的旗子在无风中微微垂着。"
+    "地面很干净——像是今早刚被打扫过。"
+    "但你明明看到全校所有人都消失了。"
+    $ assembly_square_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_stage:
+    "主席台上空空如也。"
+    "麦克风还立在讲台上。"
+    "你凑近看了看——麦克风的开关是开着的。"
+    "有人用过这个麦克风……在全校学生消失之后。"
+    $ stage_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_flowerbed:
+    "花坛里的花开得正盛。"
+    "颜色鲜艳得不像是这个季节该有的样子。"
+    "你蹲下来看了看泥土——"
+    "是湿的。刚浇过水。"
+    $ flowerbed_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_front_parking:
+    "前停车场里停着几辆车。"
+    "你认出了其中一辆——是校长的那辆黑色轿车。"
+    "引擎盖还是温的。他不久前来过这里。"
+    "从这里可以通往居民楼、操场、食堂和女生宿舍。"
+    $ front_parking_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_back_parking:
+    "后停车场比前停车场小得多。"
+    "只停了两辆车——一辆面包车，车窗贴着深色膜，看不清里面。"
+    "另一辆是白色的轿车——引擎盖上有几片落叶，落了好几天了。"
+    "后花园就在后面。"
+    $ back_parking_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_back_gate:
+    "后门锁着。"
+    "铁门上挂着一把大锁——比校门口保安室的钥匙锁还要大。"
+    "你推了推。纹丝不动。"
+    "看来只能通过其他方式出去了。"
+    $ back_gate_done = True
+    $ stamina -= 1
+    jump w1d3_explore
+
+label w1d3_back_garden:
+    "后花园里很安静。"
+    "花草打理得很整齐——但地上有几个凌乱的脚印。"
+    "不止一个人来过这里。就在最近。"
+    $ back_garden_done = True
+    $ stamina -= 1
+    jump w1d3_explore
 
 # ============================================================
 # w1d3 · 时间推进（多次探索后触发）
