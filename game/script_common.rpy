@@ -109,10 +109,10 @@ image classroom_day = "jiaoshi_1.jpg"
 image classroom_after = "jiaoshi_2.jpg"
 image classroom_eve = "jiaoshi_3.jpg"
 image classroom_night = "jiaoshi_4.jpg"
-image dorm_day = Transform("dorm_day.png", size=(1280, 720), fit="cover")
-image dorm_dusk = Transform("dorm_dusk.png", size=(1280, 720), fit="cover")
-image dorm_night = Transform("dorm_night.png", size=(1280, 720), fit="cover")
-image dorm_moon = Transform("dorm_moon.png", size=(1280, 720), fit="cover")
+image dorm_day = "dorm_day.webp"
+image dorm_dusk = "dorm_dusk.webp"
+image dorm_night = "dorm_night.webp"
+image dorm_moon = "dorm_moon.webp"
 image corridor_day = "corridor_day.webp"
 image corridor_dusk = "corridor_dusk.webp"
 image corridor_night = "corridor_night.webp"
@@ -128,12 +128,12 @@ image canteen_dusk = "canteen_dusk.webp"
 image canteen_light = "canteen_light.webp"
 
 # ---- 新增场景（1:1 图片→拉伸填满16:9）----
-image playground = Transform("playground.webp", size=(1280, 720), fit="cover")
-image office_hall = Transform("office_hall.webp", size=(1280, 720), fit="cover")
-image office_principal = Transform("office_principal.webp", size=(1280, 720), fit="cover")
-image school_gate_closeup = Transform("school_gate_closeup.webp", size=(1280, 720), fit="cover")
-image broadcast_room = Transform("broadcast_room.webp", size=(1280, 720), fit="cover")
-image security_room = Transform("security_room.webp", size=(1280, 720), fit="cover")
+image playground = Transform("playground.webp", size=(1920, 1080), fit="cover")
+image office_hall = Transform("office_hall.webp", size=(1920, 1080), fit="cover")
+image office_principal = Transform("office_principal.webp", size=(1920, 1080), fit="cover")
+image school_gate_closeup = Transform("school_gate_closeup.webp", size=(1920, 1080), fit="cover")
+image broadcast_room = Transform("broadcast_room.webp", size=(1920, 1080), fit="cover")
+image security_room = Transform("security_room.webp", size=(1920, 1080), fit="cover")
 
 # ---- 立绘：吕文强（原林晓立绘）----
 image lv normal = "lx/lx_normal.webp"
